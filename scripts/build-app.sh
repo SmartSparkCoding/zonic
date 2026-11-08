@@ -12,40 +12,10 @@ DIST="$ROOT/dist"
 STAGE="$ROOT/build"
 APP="$STAGE/$APP_NAME.app"
 
-LOG="$ROOT/build-compile.log"
-
-# Temporarily surfaces compiler output in the Actions job summary, because the log
-# itself needs a signed-in session to read. Remove once CI is green.
-on_exit() {
-  status=$?
-  if [ "$status" -ne 0 ] && [ -f "$LOG" ] && [ -n "${CI:-}" ]; then
-    if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
-      {
-        echo "### Compile output"
-        echo '```'
-        grep -E "error:" "$LOG" | head -40 || true
-        echo '---'
-        tail -30 "$LOG"
-        echo '```'
-      } >> "$GITHUB_STEP_SUMMARY" || true
-    fi
-    # Park the output on a scratch branch so it can be read without a GitHub session.
-    if git config --get http.https://github.com/.extraheader >/dev/null 2>&1; then
-      git checkout -q -B ci-compile-log || true
-      git add -f "$LOG" || true
-      git -c user.name="ci" -c user.email="ci@users.noreply.github.com" \
-        commit -qm "CI compile log" || true
-      git push -q --force origin ci-compile-log || true
-    fi
-  fi
-  exit "$status"
-}
-trap on_exit EXIT
-
 echo "==> swift $(swift --version 2>/dev/null | head -1)"
 
 echo "==> compiling universal binary (arm64 + x86_64)"
-swift build -c release --arch arm64 --arch x86_64 2>&1 | tee "$LOG"
+swift build -c release --arch arm64 --arch x86_64
 
 BINARY=""
 for CANDIDATE in \
