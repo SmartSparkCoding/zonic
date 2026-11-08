@@ -149,7 +149,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         lastfmStatus.font = .systemFont(ofSize: 11)
         lastfmStatus.textColor = .secondaryLabelColor
         lastfmStatus.lineBreakMode = .byWordWrapping
-        lastfmStatus.maximumNumberOfLines = 2
+        lastfmStatus.maximumNumberOfLines = 4
         stack.addArrangedSubview(lastfmStatus)
 
         keyField.placeholderString = "API key"
@@ -173,6 +173,11 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         connectButton.bezelStyle = .rounded
         connectButton.controlSize = .small
         stack.addArrangedSubview(connectButton)
+
+        let testButton = NSButton(title: "Send Test Scrobble", target: self, action: #selector(testScrobble))
+        testButton.bezelStyle = .rounded
+        testButton.controlSize = .small
+        stack.addArrangedSubview(testButton)
 
         stack.addArrangedSubview(note("Create an API account at last.fm/api/account/create, paste the key and secret, then press Connect. Zonic opens your browser to approve itself; press Connect again afterwards. Keys live in this app's preferences, not the keychain."))
     }
@@ -263,6 +268,14 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     @objc private func keysChanged() {
         Scrobbler.shared.apiKey = keyField.stringValue
         Scrobbler.shared.apiSecret = secretField.stringValue
+        refresh()
+    }
+
+    /// Ignores the listening rules on purpose: it either lands on Last.fm or shows the
+    /// exact reason it did not, which is the whole point of the button.
+    @objc private func testScrobble() {
+        keysChanged()
+        Scrobbler.shared.testScrobble()
         refresh()
     }
 

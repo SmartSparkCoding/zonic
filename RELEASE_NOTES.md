@@ -11,6 +11,13 @@ Zonic stays signed in.
 - **Copy Player Diagnostics** now also reports how many Amazon cookies are in the store
   and how many are in the vault, which is the quick way to tell whether a logout is the
   app's fault or Amazon's.
+- **Last.fm fixes.** Scrobbling no longer depends on the page reporting a playhead: when
+  it reports zero, a pause aware clock counts the listening instead, so a track still
+  scrobbles at half way. The same song playing twice in one session scrobbles twice, which
+  it did not before.
+- **Send Test Scrobble** in Settings sends one scrobble immediately, ignoring the listening
+  rules, and shows Last.fm's own answer. The last eight API answers are in the diagnostics
+  dump too, so a refusal names its error code instead of failing quietly.
 
 The app is ad-hoc signed, not notarised. On first launch, right click Zonic and
 choose Open, or run:

@@ -109,6 +109,8 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
                     "login cookies in store: \(amazon)",
                     "login cookies in vault: \(SessionVault.shared.storedCookieCount)",
                     "vault file: \(SessionVault.shared.vaultPath)",
+                    "last.fm calls:",
+                    Scrobbler.shared.logText,
                     "page: \(page)"
                 ]
                 completion(lines.joined(separator: "\n"))
