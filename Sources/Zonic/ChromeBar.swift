@@ -130,7 +130,6 @@ final class ChromeBar: NSView {
             titleLabel.centerYAnchor.constraint(equalTo: centerYAnchor),
             titleLabel.leadingAnchor.constraint(greaterThanOrEqualTo: transport.trailingAnchor, constant: 12),
             centeredTitle,
-            centeredTitle,
             titleLabel.trailingAnchor.constraint(lessThanOrEqualTo: trailing.leadingAnchor, constant: -12),
 
             scrubber.centerYAnchor.constraint(equalTo: centerYAnchor),

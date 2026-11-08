@@ -7,7 +7,7 @@ struct Palette {
     let name: String
     let isDark: Bool
     /// Native palettes defer to the system appearance instead of fixed colours.
-    let isNative: Bool
+    var isNative: Bool = false
     let background: String
     let surface: String
     let foreground: String
