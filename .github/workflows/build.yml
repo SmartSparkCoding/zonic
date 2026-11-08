@@ -13,7 +13,7 @@ jobs:
   macos:
     runs-on: macos-15
     env:
-      VERSION: 0.3.1
+      VERSION: 0.${{ github.run_number }}.0
     steps:
       - uses: actions/checkout@v5
 
