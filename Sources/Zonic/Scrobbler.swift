@@ -29,6 +29,14 @@ final class Scrobbler {
     private var scrobbled: Set<String> = []
     private var nowPlayingKey: String?
 
+    /// Pause aware wall clock. The page's own position is trusted when it reports one;
+    /// this covers the case where it sits at zero and scrobbles would never fire.
+    private var played: TimeInterval = 0
+    private var lastTick: Date?
+
+    /// Last few API answers, so a failure can be read back instead of guessed at.
+    private(set) var recentAnswers: [String] = []
+
     // MARK: - Credentials
 
     var apiKey: String {
@@ -152,6 +160,7 @@ final class Scrobbler {
     func observe(_ state: PlayerState) {
         let previous = current
         current = state
+        advanceClock(playing: state.isPlaying)
 
         guard state.hasTrack else { return }
         let key = trackKey(state)
@@ -159,15 +168,38 @@ final class Scrobbler {
 
         if key != previousKey {
             startedAt = Date()
+            played = 0
+            lastTick = Date()
             nowPlayingKey = nil
             if isConnected { sendNowPlaying(state) }
             return
         }
 
         guard isConnected, isEnabled else { return }
-        guard !scrobbled.contains(key) else { return }
-        guard state.position >= scrobbleThreshold(for: state.duration) else { return }
-        scrobble(state, key: key)
+        let identity = scrobbleKey(state)
+        guard !scrobbled.contains(identity) else { return }
+        guard listened(state) >= scrobbleThreshold(for: state.duration) else { return }
+        scrobble(state, identity: identity)
+    }
+
+    /// Adds real time to the clock, but only while something is playing and only for
+    /// believable gaps, so a paused or sleeping app does not bank listening time.
+    private func advanceClock(playing: Bool) {
+        defer { lastTick = Date() }
+        guard playing, let lastTick else { return }
+        let delta = Date().timeIntervalSince(lastTick)
+        if delta > 0, delta < 30 { played += delta }
+    }
+
+    /// What the track has actually played: the page's number when it has one, else the clock.
+    private func listened(_ state: PlayerState) -> Double {
+        state.position > 0 ? state.position : played
+    }
+
+    /// Keyed on the start time as well, so the same song later in the session scrobbles again.
+    private func scrobbleKey(_ state: PlayerState) -> String {
+        let started = Int((startedAt ?? Date()).timeIntervalSince1970)
+        return "\(state.artist.lowercased())|\(state.title.lowercased())|\(started)"
     }
 
     /// Last.fm's rule: half the track or four minutes, whichever comes first, and never
@@ -196,8 +228,8 @@ final class Scrobbler {
         call(method: "track.updateNowPlaying", extra: extra) { _ in }
     }
 
-    private func scrobble(_ state: PlayerState, key: String) {
-        scrobbled.insert(key)
+    private func scrobble(_ state: PlayerState, identity: String) {
+        scrobbled.insert(identity)
 
         var extra: [String: String] = [
             "artist": state.artist,
@@ -210,7 +242,7 @@ final class Scrobbler {
         call(method: "track.scrobble", extra: extra) { [weak self] json in
             guard let self else { return }
             if json["error"] != nil {
-                self.scrobbled.remove(key)
+                self.scrobbled.remove(identity)
                 self.report("Scrobble refused: \(json["message"] as? String ?? "unknown error")")
             } else {
                 self.report("Scrobbled \(state.title)")
@@ -230,6 +262,46 @@ final class Scrobbler {
                 self.report("Last.fm: \(message)")
             } else {
                 self.report("Loved \(state.title)")
+            }
+        }
+    }
+
+    // MARK: - Diagnostics
+
+    private func record(_ line: String) {
+        DispatchQueue.main.async {
+            self.recentAnswers.append(line)
+            if self.recentAnswers.count > 8 { self.recentAnswers.removeFirst() }
+        }
+    }
+
+    var logText: String {
+        recentAnswers.isEmpty ? "no Last.fm calls yet" : recentAnswers.joined(separator: "\n")
+    }
+
+    /// Sends a scrobble for whatever is playing right now, ignoring the listening rules, so
+    /// a broken setup reports Last.fm's own error instead of silence.
+    func testScrobble() {
+        guard !apiKey.isEmpty, !apiSecret.isEmpty else { report("Add the API key and secret first"); return }
+        guard isConnected else { report("Connect Last.fm first"); return }
+        let state = current
+        guard state.hasTrack else { report("Nothing is playing, start a song first"); return }
+
+        var extra: [String: String] = [
+            "artist": state.artist,
+            "track": state.title,
+            "timestamp": String(Int(Date().timeIntervalSince1970))
+        ]
+        if !state.album.isEmpty { extra["album"] = state.album }
+        if state.duration > 0 { extra["duration"] = String(Int(state.duration.rounded())) }
+
+        report("Sending a test scrobble for \(state.title)…")
+        call(method: "track.scrobble", extra: extra) { [weak self] json in
+            guard let self else { return }
+            if let error = json["error"] {
+                self.report("Last.fm refused it: \(error) \(json["message"] as? String ?? "")")
+            } else {
+                self.report("Last.fm accepted the test scrobble")
             }
         }
     }
@@ -296,9 +368,15 @@ final class Scrobbler {
             }
             guard let object = try? JSONSerialization.jsonObject(with: data),
                   let json = object as? [String: Any] else {
+                let raw = String(data: data, encoding: .utf8) ?? "<not text>"
+                self.record("\(method) -> unreadable: \(raw.prefix(200))")
                 self.report("Last.fm sent something unreadable")
                 return
             }
+            let summary = (json["error"] != nil)
+                ? "\(method) -> error \(json["error"] ?? "?"): \(json["message"] as? String ?? "")"
+                : "\(method) -> \(json["lfm"] != nil ? "ok" : "no lfm node")"
+            self.record(summary)
             finish(json)
         }.resume()
     }

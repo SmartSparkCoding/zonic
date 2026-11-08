@@ -36,6 +36,16 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         true
     }
 
+    /// Closing the window quits, and the update swap kills the process outright, so grab
+    /// the login cookies while there is still a run loop to do it in.
+    func applicationWillTerminate(_ notification: Notification) {
+        SessionVault.shared.capture()
+    }
+
+    func applicationDidResignActive(_ notification: Notification) {
+        SessionVault.shared.capture()
+    }
+
     func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows flag: Bool) -> Bool {
         if !flag { mainWindow?.showWindow(nil) }
         return true
