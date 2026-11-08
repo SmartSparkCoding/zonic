@@ -124,7 +124,14 @@ final class Scrobbler {
             guard let session = json["session"] as? [String: Any],
                   let key = session["key"] as? String,
                   let name = session["name"] as? String else {
-                self.report("Last.fm says that token is not approved yet")
+                let reason = json["message"] as? String ?? "that token is not approved"
+                // An unapproved token is useless forever, and so is one approved by a
+                // different Last.fm account. Drop it and open a fresh approval page,
+                // otherwise Connect becomes a dead end that keeps reusing the bad token.
+                self.defaults.removeObject(forKey: self.storedTokenKey)
+                self.pendingToken = nil
+                self.report("Last.fm said: \(reason). Opening a fresh approval page…")
+                self.beginAuth()
                 return
             }
             self.defaults.set(key, forKey: self.sessionKey)
@@ -133,6 +140,11 @@ final class Scrobbler {
             self.pendingToken = nil
             self.report("Connected as \(name)")
         }
+    }
+
+    /// True while a token is waiting for approval, so the button can say which step it is on.
+    var hasPendingToken: Bool {
+        pendingToken != nil || pendingStoredToken() != nil
     }
 
     /// The token is stashed because the app is often quit between approving and connecting.

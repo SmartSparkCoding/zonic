@@ -234,7 +234,13 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         if keyField.currentEditor() == nil { keyField.stringValue = scrobbler.apiKey }
         if secretField.currentEditor() == nil { secretField.stringValue = scrobbler.apiSecret }
 
-        connectButton.title = scrobbler.isConnected ? "Disconnect" : "Connect Last.fm"
+        if scrobbler.isConnected {
+            connectButton.title = "Disconnect"
+        } else if scrobbler.hasPendingToken {
+            connectButton.title = "Finish Connecting"
+        } else {
+            connectButton.title = "Connect Last.fm"
+        }
         let message = scrobbler.lastMessage
         lastfmStatus.stringValue = message.isEmpty ? scrobbler.statusLine : "\(scrobbler.statusLine)\n\(message)"
         versionLabel.stringValue = "Zonic \(Updater.shared.currentVersion)"
