@@ -2,7 +2,7 @@ import AppKit
 
 /// Shared command surface so the menu bar, the window chrome and the media keys all
 /// drive the same web view.
-final class PlayerBridge {
+final class PlayerBridge: NSObject {
     static let shared = PlayerBridge()
 
     weak var web: WebController?
@@ -29,6 +29,16 @@ final class PlayerBridge {
 
     @objc func previousTrack(_ sender: Any?) {
         handleRemote("previous")
+    }
+
+    @objc func seekForward(_ sender: Any?) {
+        guard ThemeManager.shared.seekControlsEnabled else { NSSound.beep(); return }
+        web?.seek(by: 10)
+    }
+
+    @objc func seekBack(_ sender: Any?) {
+        guard ThemeManager.shared.seekControlsEnabled else { NSSound.beep(); return }
+        web?.seek(by: -10)
     }
 
     @objc func reloadPage(_ sender: Any?) {
@@ -61,7 +71,15 @@ final class PlayerBridge {
         web?.resetZoom()
     }
 
-    @objc func cycleAppearance(_ sender: Any?) {
+    @objc func cycleTheme(_ sender: Any?) {
         ThemeManager.shared.cycle()
+    }
+
+    @objc func openSettings(_ sender: Any?) {
+        (NSApp.delegate as? AppDelegate)?.showSettings(sender)
+    }
+
+    @objc func checkForUpdates(_ sender: Any?) {
+        Updater.shared.checkNow(sender)
     }
 }

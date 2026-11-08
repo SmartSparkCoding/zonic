@@ -11,6 +11,13 @@ enum MainMenu {
         main.addItem(appItem)
 
         add(appMenu, "About Zonic", #selector(NSApplication.orderFrontStandardAboutPanel(_:)))
+        let updates = add(appMenu, "Check for Updates…", #selector(Updater.checkNow(_:)))
+        updates.target = Updater.shared
+        appMenu.addItem(.separator())
+
+        let settings = add(appMenu, "Settings…", #selector(PlayerBridge.openSettings(_:)), ",")
+        settings.target = PlayerBridge.shared
+
         appMenu.addItem(.separator())
         add(appMenu, "Hide Zonic", #selector(NSApplication.hide(_:)), "h")
         let hideOthers = add(appMenu, "Hide Others", #selector(NSApplication.hideOtherApplications(_:)), "h")
@@ -54,6 +61,18 @@ enum MainMenu {
         previous.target = PlayerBridge.shared
         playbackMenu.addItem(previous)
 
+        playbackMenu.addItem(.separator())
+
+        let seekForward = NSMenuItem(title: "Skip Forward 10 Seconds", action: #selector(PlayerBridge.seekForward(_:)), keyEquivalent: "\u{F703}")
+        seekForward.keyEquivalentModifierMask = [.command, .shift]
+        seekForward.target = PlayerBridge.shared
+        playbackMenu.addItem(seekForward)
+
+        let seekBack = NSMenuItem(title: "Skip Back 10 Seconds", action: #selector(PlayerBridge.seekBack(_:)), keyEquivalent: "\u{F702}")
+        seekBack.keyEquivalentModifierMask = [.command, .shift]
+        seekBack.target = PlayerBridge.shared
+        playbackMenu.addItem(seekBack)
+
         // View menu
         let viewItem = NSMenuItem()
         let viewMenu = NSMenu(title: "View")
@@ -88,18 +107,18 @@ enum MainMenu {
 
         viewMenu.addItem(.separator())
 
-        let appearance = NSMenuItem(title: "Appearance", action: nil, keyEquivalent: "")
-        let appearanceMenu = NSMenu()
-        appearanceMenu.delegate = ThemeManager.shared
-        for mode in AppearanceMode.allCases {
-            let item = NSMenuItem(title: mode.label, action: #selector(ThemeManager.select(_:)), keyEquivalent: "")
+        let theme = NSMenuItem(title: "Theme", action: nil, keyEquivalent: "")
+        let themeMenu = NSMenu()
+        themeMenu.delegate = ThemeManager.shared
+        for palette in Palette.all {
+            let item = NSMenuItem(title: palette.name, action: #selector(ThemeManager.select(_:)), keyEquivalent: "")
             item.target = ThemeManager.shared
-            item.representedObject = mode.rawValue
-            item.state = mode == ThemeManager.shared.mode ? .on : .off
-            appearanceMenu.addItem(item)
+            item.representedObject = palette.id
+            item.state = palette.id == ThemeManager.shared.palette.id ? .on : .off
+            themeMenu.addItem(item)
         }
-        appearance.submenu = appearanceMenu
-        viewMenu.addItem(appearance)
+        theme.submenu = themeMenu
+        viewMenu.addItem(theme)
 
         viewMenu.addItem(.separator())
 

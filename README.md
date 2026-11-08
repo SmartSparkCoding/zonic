@@ -3,7 +3,7 @@
 A small macOS desktop client for Amazon Music. It wraps the real Amazon Music web
 player in a native WebKit window and adds the things the browser tab is missing: a
 proper app you can keep in the dock, working media keys, Control Center / now-playing
-integration, its own titlebar controls, and light, dark or system appearance.
+integration, its own thin titlebar, themes, and updates that install themselves.
 
 Named the way Slick is named after Slack. Zonic, from Amazon and sonic. Roughly 1 MB
 of binary, no Electron, no background daemons.
@@ -25,16 +25,31 @@ of binary, no Electron, no background daemons.
 
 Requires macOS 12 or newer, on Apple silicon or Intel.
 
+## Updating
+
+Zonic checks the GitHub release feed a few seconds after launch and offers anything
+newer. **Zonic > Check for Updates…** does it on demand. The update verifies the
+download against the release `SHA256SUMS.txt`, then swaps the app bundle and reopens
+it, so there is no dmg to drag around. Turn the automatic check off in
+**Zonic > Settings…** (cmd comma).
+
+To update by hand instead: quit Zonic, drag the new `Zonic.app` over the one in
+Applications, reopen.
+
 ## What it does
 
-- **Native window, no browser chrome.** Custom titlebar with back, forward, reload,
-  and the current track shown in the middle.
+- **Native window, no browser chrome.** A 30pt titlebar with back, forward, reload on
+  the left and the current track in the middle.
 - **Media keys work.** Play, pause, next and previous from the keyboard, plus the
   buttons in Control Center.
-- **Now playing.** Track, artist, album and artwork are published to the system so
-  they show up in Control Center and the menu bar.
+- **Now playing.** The page's own media session publishes the track, artist and
+  artwork, so Control Center lists Zonic exactly once.
 - **Space to play or pause**, unless you are typing in a search box.
-- **Themes.** Match System, Light or Dark, from the titlebar button or View > Appearance.
+- **Themes.** Match System, Light, Dark, Gruvbox Dark, Nord, Catppuccin Mocha, Tokyo
+  Night, Dracula, One Dark, Solarized Dark, AMOLED Black and Rose Pine. The window
+  chrome and menus follow the palette, and Settings can tint the page to match.
+- **Optional scrubber.** Settings adds a progress slider to the titlebar plus 10 second
+  skips, for tracks Amazon lets you seek in.
 - **Zoom** the interface with cmd + and cmd -, reset with cmd 0.
 - External links open in your browser instead of inside the app.
 
@@ -45,9 +60,11 @@ Requires macOS 12 or newer, on Apple silicon or Intel.
 | Play / pause | space, or cmd P |
 | Next track | cmd right arrow |
 | Previous track | cmd left arrow |
+| Skip forward / back 10s | shift cmd right / left |
 | Reload | cmd R |
 | Back / forward | cmd [ / cmd ] |
 | Zoom in / out / reset | cmd = / cmd - / cmd 0 |
+| Settings | cmd , |
 | Full screen | ctrl cmd F |
 
 ## Build from source
@@ -69,17 +86,26 @@ runner and publishes a release on every push to `main`.
 - `Sources/Zonic/WebController.swift` owns the `WKWebView` pointed at
   `music.amazon.com`, with a persistent cookie store and a Safari user agent.
 - `Sources/Zonic/Bridge.swift` is the injected JavaScript. It reads
-  `navigator.mediaSession.metadata` and the audio element for state, and exposes
-  `window.__zonic.command('play' | 'pause' | 'next' | 'previous')` for the native side.
-- `Sources/Zonic/NowPlaying.swift` wires `MPRemoteCommandCenter` and
-  `MPNowPlayingInfoCenter`.
-- `Sources/Zonic/ChromeBar.swift` and `MainWindowController.swift` are the window.
+  `navigator.mediaSession.metadata` and the audio element for state, reports back four
+  times a second, and exposes `window.__zonic` with `command`, `seekTo`, `seekBy` and
+  `tick`.
+- `Sources/Zonic/Updater.swift` talks to the GitHub releases API, verifies the checksum
+  and hands the bundle swap to a short shell script that waits for the app to quit.
+- `Sources/Zonic/Theme.swift` holds the palettes and the optional page skin.
+- `Sources/Zonic/ChromeBar.swift`, `MainWindowController.swift` and
+  `SettingsWindowController.swift` are the window and its settings.
 
 ## Known limitations
 
+- Amazon caps how many tracks you can skip per hour on its own servers, per account and
+  plan. No client side change can lift that; Zonic only makes each skip register
+  immediately. Seeking inside a track is offered as an option because Amazon refuses it
+  on some content.
 - Amazon can change its DOM at any time. Next and previous are found by matching
   `aria-label`, `title` and `data-testid`, with a looser substring fallback. If they
   ever stop responding, that matching in `Bridge.swift` is the thing to fix.
+- The page skin is a best-effort tint over markup Amazon owns, so it can look patchy.
+  It is off by default.
 - Playback uses whatever media stack WebKit exposes. If Amazon ever insists on a DRM
   module WebKit does not ship, audio would need an Electron plus Widevine build
   instead.
