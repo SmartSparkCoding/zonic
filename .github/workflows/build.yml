@@ -13,7 +13,7 @@ jobs:
   macos:
     runs-on: macos-15
     env:
-      VERSION: 0.2.0
+      VERSION: 0.3.1
     steps:
       - uses: actions/checkout@v5
 
