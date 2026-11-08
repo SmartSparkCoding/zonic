@@ -61,10 +61,8 @@ cd zonic
 VERSION=0.2.0 ./scripts/build-app.sh
 ```
 
-The workflow in `ci/build.yml` builds the universal binary on a macOS runner and
-publishes a release on every push to `main`. It lives in `ci/` because the GitHub App
-that pushed this repo is not allowed to write workflow files: copy it to
-`.github/workflows/build.yml` once and CI takes over from there.
+The workflow in `.github/workflows/build.yml` builds the universal binary on a macOS
+runner and publishes a release on every push to `main`.
 
 ## How it works
 
