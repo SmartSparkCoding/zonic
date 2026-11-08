@@ -57,7 +57,7 @@ Needs Xcode command line tools (`xcode-select --install`).
 ```bash
 git clone https://github.com/SmartSparkCoding/zonic
 cd zonic
-./scripts/build-app.sh          # produces dist/Zonic.app, .dmg and .zip
+./scripts/build-app.sh          # produces build/Zonic.app, dist/*.dmg and .zip
 VERSION=0.2.0 ./scripts/build-app.sh
 ```
 

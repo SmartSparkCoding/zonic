@@ -9,7 +9,8 @@ APP_NAME="Zonic"
 VERSION="${VERSION:-0.1.0}"
 BUILD_NUMBER="${BUILD_NUMBER:-1}"
 DIST="$ROOT/dist"
-APP="$DIST/$APP_NAME.app"
+STAGE="$ROOT/build"
+APP="$STAGE/$APP_NAME.app"
 
 echo "==> swift $(swift --version 2>/dev/null | head -1)"
 
@@ -30,7 +31,7 @@ if [ -z "$BINARY" ]; then
 fi
 
 echo "==> assembling $APP"
-rm -rf "$DIST"
+rm -rf "$DIST" "$STAGE"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BINARY" "$APP/Contents/MacOS/$APP_NAME"
 cp packaging/Info.plist "$APP/Contents/Info.plist"
