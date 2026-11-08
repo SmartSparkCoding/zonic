@@ -47,8 +47,23 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
     }
 
     func command(_ action: String) {
-        let js = "window.__zonic && window.__zonic.command('\(action)');"
-        webView.evaluateJavaScript(js, completionHandler: nil)
+        webView.evaluateJavaScript("window.__zonic && window.__zonic.command('\(action)');") { [weak self] _, _ in
+            self?.refreshState()
+        }
+    }
+
+    /// Asks the page for a fresh snapshot, so the chrome catches up without waiting for
+    /// the next poll.
+    func refreshState() {
+        webView.evaluateJavaScript("window.__zonic && window.__zonic.tick();", completionHandler: nil)
+    }
+
+    func seek(to seconds: Double) {
+        webView.evaluateJavaScript("window.__zonic && window.__zonic.seekTo(\(seconds));", completionHandler: nil)
+    }
+
+    func seek(by delta: Double) {
+        webView.evaluateJavaScript("window.__zonic && window.__zonic.seekBy(\(delta));", completionHandler: nil)
     }
 
     func zoom(by delta: Double) {
@@ -57,6 +72,39 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
 
     func resetZoom() {
         webView.pageZoom = 1.0
+    }
+
+    // MARK: - Theme
+
+    /// Installs (or removes) the page skin. Runs after every load and on theme changes.
+    func applyTheme() {
+        let css = ThemeManager.shared.pageCSS()
+        guard !css.isEmpty else {
+            webView.evaluateJavaScript(
+                "var el = document.getElementById('zonic-theme'); if (el) { el.remove(); }",
+                completionHandler: nil
+            )
+            return
+        }
+
+        let escaped = css
+            .replacingOccurrences(of: "\\", with: "\\\\")
+            .replacingOccurrences(of: "'", with: "\\'")
+            .replacingOccurrences(of: "\n", with: " ")
+            .replacingOccurrences(of: "\r", with: " ")
+
+        let js = """
+        (function () {
+          var el = document.getElementById('zonic-theme');
+          if (!el) {
+            el = document.createElement('style');
+            el.id = 'zonic-theme';
+            (document.head || document.documentElement).appendChild(el);
+          }
+          el.textContent = '\(escaped)';
+        })();
+        """
+        webView.evaluateJavaScript(js, completionHandler: nil)
     }
 
     // MARK: - WKScriptMessageHandler
@@ -71,12 +119,18 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
             album: (body["album"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines),
             artworkURL: artworkString.flatMap(URL.init(string:)),
             isPlaying: body["playing"] as? Bool ?? false,
-            isEditing: body["editing"] as? Bool ?? false
+            isEditing: body["editing"] as? Bool ?? false,
+            position: (body["position"] as? NSNumber)?.doubleValue ?? 0,
+            duration: (body["duration"] as? NSNumber)?.doubleValue ?? 0,
+            canSeek: body["canSeek"] as? Bool ?? false
         )
 
         guard next != state else { return }
         state = next
-        NowPlayingCenter.shared.update(with: next)
+        // Now Playing metadata is deliberately not pushed from here. WebKit registers its own
+        // Now Playing session for a WKWebView with playing media, and claiming the seat as well
+        // made macOS show Zonic twice in Control Center. The page's Media Session is the single
+        // owner: it supplies the title, artist and artwork, and it receives the hardware keys.
         onStateChange?(next)
     }
 
@@ -89,6 +143,8 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
     func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
         onLoading?(false)
         onNavigate?()
+        applyTheme()
+        refreshState()
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {

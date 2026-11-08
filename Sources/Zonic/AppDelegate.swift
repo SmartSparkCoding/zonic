@@ -2,6 +2,7 @@ import AppKit
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var mainWindow: MainWindowController?
+    private var settingsWindow: SettingsWindowController?
     private var spaceMonitor: Any?
 
     func applicationDidFinishLaunching(_ notification: Notification) {
@@ -12,13 +13,23 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.showWindow(nil)
         mainWindow = window
 
-        NowPlayingCenter.shared.commandHandler = { command in
-            PlayerBridge.shared.handleRemote(command)
-        }
-        NowPlayingCenter.shared.activate()
-
         installSpaceMonitor()
         NSApp.activate(ignoringOtherApps: true)
+
+        // Quiet check a few seconds after launch, so a fresh version is offered without
+        // getting in the way of the first play.
+        if ThemeManager.shared.autoCheckUpdates {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 4) {
+                Updater.shared.checkForUpdates(userInitiated: false)
+            }
+        }
+    }
+
+    func showSettings(_ sender: Any?) {
+        if settingsWindow == nil {
+            settingsWindow = SettingsWindowController()
+        }
+        settingsWindow?.present()
     }
 
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
