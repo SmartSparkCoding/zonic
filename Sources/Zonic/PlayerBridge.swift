@@ -41,6 +41,10 @@ final class PlayerBridge: NSObject {
         web?.seek(by: -10)
     }
 
+    @objc func loveTrack(_ sender: Any?) {
+        Scrobbler.shared.love()
+    }
+
     @objc func reloadPage(_ sender: Any?) {
         web?.webView.reload()
     }

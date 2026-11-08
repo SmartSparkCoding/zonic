@@ -58,12 +58,45 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
         webView.evaluateJavaScript("window.__zonic && window.__zonic.tick();", completionHandler: nil)
     }
 
-    func seek(to seconds: Double) {
-        webView.evaluateJavaScript("window.__zonic && window.__zonic.seekTo(\(seconds));", completionHandler: nil)
+    /// Jumps inside the current track. The page reports how it managed it, which is what
+    /// the scrubber and the menu items use to decide whether to explain themselves.
+    func seek(to seconds: Double, completion: ((String) -> Void)? = nil) {
+        webView.evaluateJavaScript("window.__zonic ? window.__zonic.seekTo(\(seconds)) : 'missing';") { result, _ in
+            completion?(result as? String ?? "missing")
+            self.refreshState()
+        }
     }
 
     func seek(by delta: Double) {
-        webView.evaluateJavaScript("window.__zonic && window.__zonic.seekBy(\(delta));", completionHandler: nil)
+        webView.evaluateJavaScript("window.__zonic ? window.__zonic.seekBy(\(delta)) : 'missing';") { _, _ in
+            self.refreshState()
+        }
+    }
+
+    func seek(fraction: Double) {
+        let clamped = min(1, max(0, fraction))
+        webView.evaluateJavaScript("window.__zonic ? window.__zonic.seekFraction(\(clamped)) : 'missing';") { _, _ in
+            self.refreshState()
+        }
+    }
+
+    /// Pushes the user's player preferences into the page, which needs them for the
+    /// finish-the-track fallback.
+    func syncOptions() {
+        let finish = ThemeManager.shared.finishTrackSkips ? "true" : "false"
+        webView.evaluateJavaScript(
+            "window.__zonic && window.__zonic.options({ finishTrack: \(finish) });",
+            completionHandler: nil
+        )
+    }
+
+    /// Diagnostics for the "copy player diagnostics" menu item.
+    func diagnostics(_ completion: @escaping (String) -> Void) {
+        webView.evaluateJavaScript(
+            "JSON.stringify(window.__zonic ? window.__zonic.debug() : null);"
+        ) { result, _ in
+            completion(result as? String ?? "no bridge")
+        }
     }
 
     func zoom(by delta: Double) {
@@ -144,6 +177,7 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
         onLoading?(false)
         onNavigate?()
         applyTheme()
+        syncOptions()
         refreshState()
     }
 

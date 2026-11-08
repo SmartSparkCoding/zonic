@@ -73,6 +73,12 @@ enum MainMenu {
         seekBack.target = PlayerBridge.shared
         playbackMenu.addItem(seekBack)
 
+        playbackMenu.addItem(.separator())
+
+        let love = NSMenuItem(title: "Love on Last.fm", action: #selector(PlayerBridge.loveTrack(_:)), keyEquivalent: "l")
+        love.target = PlayerBridge.shared
+        playbackMenu.addItem(love)
+
         // View menu
         let viewItem = NSMenuItem()
         let viewMenu = NSMenu(title: "View")
