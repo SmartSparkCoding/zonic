@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-    branches: [main]
+    branches: [main, init]
   pull_request:
   workflow_dispatch:
 
@@ -30,7 +30,7 @@ jobs:
           path: dist/*
 
       - name: Publish release
-        if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        if: github.event_name != 'pull_request' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/init')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
