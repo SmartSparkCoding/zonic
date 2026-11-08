@@ -74,9 +74,6 @@ final class Updater: NSObject {
 
                 let notes = (json["body"] as? String ?? "").trimmingCharacters(in: .whitespacesAndNewlines)
                 let assets = (json["assets"] as? [[String: Any]]) ?? []
-                if let page = json["html_url"] as? String {
-                    self.releasePage = URL(string: page)
-                }
                 self.offer(version: latest, notes: notes, assets: assets)
             }
         }.resume()
