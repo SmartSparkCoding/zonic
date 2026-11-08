@@ -77,7 +77,7 @@ final class NowPlayingCenter {
         ]
         if !latest.artist.isEmpty { info[MPMediaItemPropertyArtist] = latest.artist }
         if !latest.album.isEmpty { info[MPMediaItemPropertyAlbumTitle] = latest.album }
-        if let artwork { info[MPMediaItemPropertyArtwork] = artwork }
+        if let artwork = self.artwork { info[MPMediaItemPropertyArtwork] = artwork }
 
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
         MPNowPlayingInfoCenter.default().playbackState = latest.isPlaying ? .playing : .paused

@@ -17,8 +17,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         window.titleVisibility = .hidden
         window.titlebarAppearsTransparent = true
         window.minSize = NSSize(width: 760, height: 480)
-        window.setFrameAutosaveName("ZonicMainWindow")
         window.center()
+        window.setFrameAutosaveName("ZonicMainWindow")
 
         super.init(window: window)
 

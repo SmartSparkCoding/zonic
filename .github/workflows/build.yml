@@ -38,9 +38,9 @@ jobs:
           TAG="v${VERSION}"
           (cd dist && shasum -a 256 ./* > SHA256SUMS.txt)
           if gh release view "$TAG" >/dev/null 2>&1; then
-            gh release upload "$TAG" dist/* --clobber
+            gh release upload "$TAG" dist/*.dmg dist/*.zip dist/SHA256SUMS.txt --clobber
           else
-            gh release create "$TAG" dist/* \
+            gh release create "$TAG" dist/*.dmg dist/*.zip dist/SHA256SUMS.txt \
               --title "Zonic $VERSION" \
               --notes-file RELEASE_NOTES.md \
               --target "$GITHUB_SHA"
