@@ -39,6 +39,9 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
             webView.isInspectable = true
         }
 
+        // Put the stored login back before the first load, then keep it up to date.
+        SessionVault.shared.attach(to: configuration.websiteDataStore)
+
         loadHome()
     }
 
@@ -94,8 +97,22 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
     func diagnostics(_ completion: @escaping (String) -> Void) {
         webView.evaluateJavaScript(
             "JSON.stringify(window.__zonic ? window.__zonic.debug() : null);"
-        ) { result, _ in
-            completion(result as? String ?? "no bridge")
+        ) { [weak self] result, _ in
+            let page = result as? String ?? "no bridge"
+            guard let self else {
+                completion(page)
+                return
+            }
+            self.webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
+                let amazon = cookies.filter { $0.domain.lowercased().contains("amazon") }.count
+                let lines = [
+                    "login cookies in store: \(amazon)",
+                    "login cookies in vault: \(SessionVault.shared.storedCookieCount)",
+                    "vault file: \(SessionVault.shared.vaultPath)",
+                    "page: \(page)"
+                ]
+                completion(lines.joined(separator: "\n"))
+            }
         }
     }
 
@@ -179,6 +196,8 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
         applyTheme()
         syncOptions()
         refreshState()
+        // A page finishing is when the login cookies are most likely to have just changed.
+        SessionVault.shared.capture()
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
