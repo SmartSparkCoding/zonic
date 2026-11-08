@@ -12,11 +12,6 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         window.showWindow(nil)
         mainWindow = window
 
-        NowPlayingCenter.shared.commandHandler = { command in
-            PlayerBridge.shared.handleRemote(command)
-        }
-        NowPlayingCenter.shared.activate()
-
         installSpaceMonitor()
         NSApp.activate(ignoringOtherApps: true)
     }

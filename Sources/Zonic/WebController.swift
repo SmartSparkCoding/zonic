@@ -76,7 +76,10 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
 
         guard next != state else { return }
         state = next
-        NowPlayingCenter.shared.update(with: next)
+        // Now Playing metadata is deliberately not pushed from here. WebKit registers its own
+        // Now Playing session for a WKWebView with playing media, and claiming the seat as well
+        // made macOS show Zonic twice in Control Center. The page's Media Session is the single
+        // owner: it supplies the title, artist and artwork, and it receives the hardware keys.
         onStateChange?(next)
     }
 
