@@ -2,7 +2,7 @@ name: build
 
 on:
   push:
-    branches: [main, init]
+    branches: [main, init, 'ci-*']
   pull_request:
   workflow_dispatch:
 
@@ -11,11 +11,11 @@ permissions:
 
 jobs:
   macos:
-    runs-on: macos-14
+    runs-on: macos-15
     env:
       VERSION: 0.1.0
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Toolchain
         run: swift --version && sw_vers
@@ -24,7 +24,7 @@ jobs:
         run: ./scripts/build-app.sh
 
       - name: Upload build artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: zonic-macos
           path: dist/*
