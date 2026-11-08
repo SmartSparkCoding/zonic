@@ -144,9 +144,32 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         menu.addItem(withTitle: "Zoom Out", action: #selector(PlayerBridge.zoomOut(_:)), keyEquivalent: "").target = PlayerBridge.shared
         menu.addItem(withTitle: "Actual Size", action: #selector(PlayerBridge.zoomReset(_:)), keyEquivalent: "").target = PlayerBridge.shared
         menu.addItem(.separator())
+        menu.addItem(withTitle: "Copy Player Diagnostics", action: #selector(copyDiagnostics), keyEquivalent: "").target = self
+        menu.addItem(withTitle: "Love on Last.fm", action: #selector(PlayerBridge.loveTrack(_:)), keyEquivalent: "").target = PlayerBridge.shared
+        menu.addItem(.separator())
         menu.addItem(withTitle: "Check for Updates…", action: #selector(Updater.checkNow(_:)), keyEquivalent: "").target = Updater.shared
         menu.addItem(withTitle: "Settings…", action: #selector(PlayerBridge.openSettings(_:)), keyEquivalent: "").target = PlayerBridge.shared
 
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: sender.bounds.minY - 4), in: sender)
+    }
+
+    /// Dumps what the page can actually see, which is the fastest way to tell whether a
+    /// seek problem is DRM, a missing slider or a dead bridge.
+    @objc private func copyDiagnostics() {
+        web.diagnostics { [weak self] text in
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setString(text, forType: .string)
+
+            let alert = NSAlert()
+            alert.messageText = "Player diagnostics copied"
+            alert.informativeText = text
+            alert.addButton(withTitle: "OK")
+            if let window = self?.window {
+                alert.beginSheetModal(for: window, completionHandler: nil)
+            } else {
+                alert.runModal()
+            }
+        }
     }
 }
