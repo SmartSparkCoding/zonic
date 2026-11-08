@@ -112,12 +112,17 @@ final class ThemeManager: NSObject, NSMenuDelegate {
     private let skinKey = "zonic.skinPage"
     private let autoUpdateKey = "zonic.autoUpdateCheck"
     private let seekKey = "zonic.seekControls"
+    private let finishKey = "zonic.finishTrackSkips"
 
     private(set) var palette: Palette = .system
 
-    /// Recolour the page itself, best effort. Off by default because Amazon's markup moves.
+    /// Recolour the page itself, best effort. On by default: a themed window with an
+    /// untouched page looked half finished.
     var skinsPage: Bool {
-        get { UserDefaults.standard.bool(forKey: skinKey) }
+        get {
+            if UserDefaults.standard.object(forKey: skinKey) == nil { return true }
+            return UserDefaults.standard.bool(forKey: skinKey)
+        }
         set {
             UserDefaults.standard.set(newValue, forKey: skinKey)
             NotificationCenter.default.post(name: .themeDidChange, object: nil)
@@ -138,9 +143,25 @@ final class ThemeManager: NSObject, NSMenuDelegate {
 
     /// Reveals the scrubber and allows seeking inside a track.
     var seekControlsEnabled: Bool {
-        get { UserDefaults.standard.bool(forKey: seekKey) }
+        get {
+            if UserDefaults.standard.object(forKey: seekKey) == nil { return true }
+            return UserDefaults.standard.bool(forKey: seekKey)
+        }
         set {
             UserDefaults.standard.set(newValue, forKey: seekKey)
+            NotificationCenter.default.post(name: .playerSettingsDidChange, object: nil)
+        }
+    }
+
+    /// When Amazon refuses a skip, run the current track to its end instead, so playback
+    /// rolls on by itself. Amazon counts button presses, not tracks finishing.
+    var finishTrackSkips: Bool {
+        get {
+            if UserDefaults.standard.object(forKey: finishKey) == nil { return true }
+            return UserDefaults.standard.bool(forKey: finishKey)
+        }
+        set {
+            UserDefaults.standard.set(newValue, forKey: finishKey)
             NotificationCenter.default.post(name: .playerSettingsDidChange, object: nil)
         }
     }
@@ -192,10 +213,14 @@ final class ThemeManager: NSObject, NSMenuDelegate {
 
     // MARK: - Page skin
 
-    /// CSS applied to the Amazon Music page. Empty for the native palettes, which let the
-    /// site keep its own look.
+    /// CSS applied to the Amazon Music page for every palette. Amazon ships hashed class
+    /// names, so nothing here may depend on them: the skin works structurally instead,
+    /// flattening the site's own fills and painting them again from the palette. Album art
+    /// and images are untouched on purpose.
+    ///
+    /// This is the part most likely to need nudging when Amazon redesigns.
     func pageCSS() -> String {
-        guard skinsPage, !palette.isNative else { return "" }
+        guard skinsPage else { return "" }
 
         let bg = palette.background
         let surface = palette.surface
@@ -205,19 +230,91 @@ final class ThemeManager: NSObject, NSMenuDelegate {
         let scheme = palette.isDark ? "dark" : "light"
 
         return """
-        :root { color-scheme: \(scheme); }
-        html, body { background-color: #\(bg) !important; }
-        body, body span, body a, body div { color: #\(fg); }
-        body a:hover { color: #\(accent); }
-        ::selection { background: #\(accent); color: #\(bg); }
-        #root, #page-container, #main-container, main { background-color: #\(bg) !important; }
-        [data-testid*="player" i], [class*="playerBar"], [class*="PlayerBar"] {
-          background-color: #\(surface) !important;
-          border-color: #\(muted) !important;
+        :root { color-scheme: \(scheme) !important; }
+        html { background-color: #\(bg) !important; }
+        body { background-color: #\(bg) !important; color: #\(fg) !important; }
+
+        /* Flatten every fill, then paint the ones that carry meaning back on. */
+        body * {
+          background-color: transparent !important;
+          border-color: #\(surface) !important;
+          outline-color: #\(accent) !important;
         }
+        body * { color: inherit; }
+
+        /* Text. Amazon sets explicit whites and blacks all over the place. */
+        body, body p, body span, body div, body li, body label, body h1,
+        body h2, body h3, body h4, body h5, body h6, body strong, body small,
+        body time, body td, body th {
+          color: #\(fg) !important;
+        }
+        body a, body a span { color: #\(fg) !important; }
+        body a:hover, body a:hover span { color: #\(accent) !important; }
+        [aria-current], [aria-current] span, [aria-selected="true"],
+        [aria-selected="true"] span { color: #\(accent) !important; }
+        [aria-disabled="true"], [aria-disabled="true"] span,
+        [disabled], body small { color: #\(muted) !important; }
+        ::selection { background: #\(accent) !important; color: #\(bg) !important; }
+
+        /* Containers sit on the palette background; the player bar gets the surface tone. */
+        #root, #nav, #main, #page-container, #main-container, main, header, nav,
+        section, aside, article, footer, form, table, tbody, tr, td, th, ul, ol, li,
+        div, span { background-color: transparent !important; }
+
+        [data-testid*="player" i], [class*="playerBar" i], [class*="player-bar" i],
+        [class*="nowPlaying" i], [class*="playback" i], [class*="miniplayer" i],
+        [role="region"][aria-label*="player" i] {
+          background-color: #\(surface) !important;
+        }
+
+        /* Interactive elements need to read as interactive once their fills are gone. */
+        button, [role="button"], [role="menuitem"], [role="option"], [role="tab"] {
+          background-color: transparent !important;
+          border-radius: 6px !important;
+        }
+        button:hover, [role="button"]:hover, [role="menuitem"]:hover,
+        [role="option"]:hover, [role="tab"]:hover {
+          background-color: #\(surface) !important;
+        }
+        [aria-pressed="true"], [aria-checked="true"], [data-selected="true"] {
+          background-color: #\(surface) !important;
+          color: #\(accent) !important;
+        }
+
+        input, textarea, select, [contenteditable="true"], [role="textbox"],
+        [role="searchbox"] {
+          background-color: #\(surface) !important;
+          color: #\(fg) !important;
+          border: 1px solid #\(muted) !important;
+          border-radius: 6px !important;
+        }
+        input::placeholder, textarea::placeholder { color: #\(muted) !important; }
+
+        /* Sliders and progress bars are the clearest signal of the accent colour. */
+        input[type="range"], [role="slider"] { accent-color: #\(accent) !important; }
+        progress, [role="progressbar"], [role="progressbar"] > * {
+          background-color: #\(surface) !important;
+          color: #\(accent) !important;
+          accent-color: #\(accent) !important;
+        }
+
+        /* Dialogs and menus float above the page and need an actual fill. */
+        [role="dialog"], [role="menu"], [role="listbox"], [role="tooltip"],
+        [role="alertdialog"], [class*="modal" i], [class*="dialog" i],
+        [class*="popover" i], [class*="dropdown" i], [class*="menu" i][class*="list" i] {
+          background-color: #\(surface) !important;
+          color: #\(fg) !important;
+          border: 1px solid #\(muted) !important;
+          border-radius: 10px !important;
+        }
+
         ::-webkit-scrollbar { width: 10px; height: 10px; }
-        ::-webkit-scrollbar-track { background: #\(bg); }
-        ::-webkit-scrollbar-thumb { background: #\(muted); border-radius: 5px; }
+        ::-webkit-scrollbar-track { background: #\(bg) !important; }
+        ::-webkit-scrollbar-thumb {
+          background: #\(muted) !important;
+          border-radius: 5px !important;
+        }
+        ::-webkit-scrollbar-thumb:hover { background: #\(accent) !important; }
         """
     }
 }

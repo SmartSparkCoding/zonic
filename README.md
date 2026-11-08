@@ -45,9 +45,17 @@ Applications, reopen.
 - **Now playing.** The page's own media session publishes the track, artist and
   artwork, so Control Center lists Zonic exactly once.
 - **Space to play or pause**, unless you are typing in a search box.
+- **Skip inside a track.** A scrubber in the titlebar and cmd shift left / right jump ten
+  seconds. Seeking drives Amazon's own progress bar, because their DRM stream clamps
+  currentTime jumps that fall outside the buffered range.
+- **When Amazon refuses a skip** (they cap skips per account per hour on their side), Zonic
+  finishes the current track so playback rolls on to the next song anyway. On by default.
+- **Last.fm scrobbling.** Add an API key and secret, approve Zonic in the browser, and it
+  pings now-playing and scrobbles at half the track. cmd L loves the current song.
 - **Themes.** Match System, Light, Dark, Gruvbox Dark, Nord, Catppuccin Mocha, Tokyo
   Night, Dracula, One Dark, Solarized Dark, AMOLED Black and Rose Pine. The window
-  chrome and menus follow the palette, and Settings can tint the page to match.
+  chrome and menus follow the palette, and the page is repainted from it too: text,
+  backgrounds, controls, menus, scrollbars. On by default, togglable in Settings.
 - **Optional scrubber.** Settings adds a progress slider to the titlebar plus 10 second
   skips, for tracks Amazon lets you seek in.
 - **Zoom** the interface with cmd + and cmd -, reset with cmd 0.

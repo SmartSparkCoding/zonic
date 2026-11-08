@@ -95,6 +95,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
 
     private func applyState(_ state: PlayerState) {
         chrome.update(state: state)
+        Scrobbler.shared.observe(state)
         let title = state.hasTrack ? state.displayText : "Zonic"
         if window?.title != title { window?.title = title }
     }
@@ -110,6 +111,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
 
     @objc private func playerSettingsDidChange() {
         chrome.setSeekControlsEnabled(ThemeManager.shared.seekControlsEnabled)
+        web.syncOptions()
         web.refreshState()
     }
 
