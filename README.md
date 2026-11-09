@@ -166,7 +166,7 @@ around it or through the same media session your browser uses.
   [LRCLIB](https://lrclib.net) for the words.
 - [Last.fm](https://www.last.fm/) for an API that still just works.
 - Everyone who installed a 0.x build, hit a bug and said so.
-- Gorkie and OpenCOde for writing the code, and [Jacob](https://jacob.navaratne.uk/) for flying it.
+- Gorkie and OpenCode for writing the code, and [Jacob](https://jacob.navaratne.uk/) for flying it.
 
 ## Legal
 

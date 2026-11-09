@@ -11,9 +11,6 @@ import Foundation
 /// `audio.currentTime`. Amazon plays through MSE under DRM, where a jump outside the
 /// buffered range is clamped or stalls, and the slider is the path their player expects.
 enum Bridge {
-    /// How often the page reports back. Fast enough that the title and scrubber feel live.
-    static let pollMilliseconds = 250
-
     static let injectedScript = #"""
     (function () {
       if (window.__zonic) { return; }

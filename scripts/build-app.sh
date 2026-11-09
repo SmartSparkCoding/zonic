@@ -15,7 +15,9 @@ APP="$STAGE/$APP_NAME.app"
 echo "==> swift $(swift --version 2>/dev/null | head -1)"
 
 echo "==> compiling universal binary (arm64 + x86_64)"
-swift build -c release --arch arm64 --arch x86_64
+# -Osize rather than -O: this app is UI and glue, so trading a little speed for a
+# smaller binary is the right way round.
+swift build -c release --arch arm64 --arch x86_64 -Xswiftc -Osize
 
 BINARY=""
 for CANDIDATE in \
@@ -34,6 +36,7 @@ echo "==> assembling $APP"
 rm -rf "$DIST" "$STAGE"
 mkdir -p "$APP/Contents/MacOS" "$APP/Contents/Resources"
 cp "$BINARY" "$APP/Contents/MacOS/$APP_NAME"
+strip -x "$APP/Contents/MacOS/$APP_NAME"
 cp packaging/Info.plist "$APP/Contents/Info.plist"
 
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$APP/Contents/Info.plist"
