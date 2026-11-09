@@ -151,9 +151,6 @@ final class ThemeManager: NSObject, NSMenuDelegate {
         }
     }
 
-    /// Kept for callers that only care whether the page is being touched at all.
-    var skinsPage: Bool { skinMode != .off }
-
     /// Seconds of fade at each track boundary. Zero means off.
     var crossfadeSeconds: Int {
         get {

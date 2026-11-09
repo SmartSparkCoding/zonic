@@ -1,10 +1,6 @@
 import AppKit
 import CoreImage
 
-final class LyricsDocumentView: NSView {
-    override var isFlipped: Bool { true }
-}
-
 /// A thin progress bar that takes its colours from the palette, so it matches the theme
 /// instead of the system accent.
 final class LyricsProgressBar: NSView {
@@ -53,7 +49,7 @@ final class LyricsView: NSView {
     private let nextButton = NSButton()
     private let statusLabel = NSTextField(labelWithString: "")
     private let scroll = NSScrollView()
-    private let document = LyricsDocumentView()
+    private let document = FlippedView()
     private let closeButton = NSButton()
 
     private var lines: [LyricLine] = []

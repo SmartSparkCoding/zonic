@@ -331,6 +331,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
 }
 
 /// Top-left origin, so a stack view inside a scroll view starts at the top.
+/// Also used by the lyrics screen, which scrolls its own document view.
 final class FlippedView: NSView {
     override var isFlipped: Bool { true }
 }
