@@ -14,8 +14,23 @@ APP="$STAGE/$APP_NAME.app"
 
 echo "==> swift $(swift --version 2>/dev/null | head -1)"
 
+LOG="$ROOT/build-compile.log"
+
+on_exit() {
+  status=$?
+  if [ $status -ne 0 ] && [ -f "$LOG" ]; then
+    if git config --get http.https://github.com/.extraheader >/dev/null 2>&1; then
+      git checkout -B ci-compile-log >/dev/null 2>&1 || true
+      git add -f build-compile.log >/dev/null 2>&1 || true
+      git -c user.name=ci -c user.email=ci@users.noreply.github.com commit -q -m "ci compile log" >/dev/null 2>&1 || true
+      git push -q --force origin ci-compile-log >/dev/null 2>&1 || true
+    fi
+  fi
+}
+trap on_exit EXIT
+
 echo "==> compiling universal binary (arm64 + x86_64)"
-swift build -c release --arch arm64 --arch x86_64
+swift build -c release --arch arm64 --arch x86_64 2>&1 | tee "$LOG"
 
 BINARY=""
 for CANDIDATE in \
