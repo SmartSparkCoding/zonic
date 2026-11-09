@@ -6,6 +6,7 @@ final class PlayerBridge: NSObject {
     static let shared = PlayerBridge()
 
     weak var web: WebController?
+    weak var window: MainWindowController?
 
     func handleRemote(_ command: String) {
         guard let web else { return }
@@ -77,6 +78,10 @@ final class PlayerBridge: NSObject {
 
     @objc func cycleTheme(_ sender: Any?) {
         ThemeManager.shared.cycle()
+    }
+
+    @objc func toggleLyrics(_ sender: Any?) {
+        window?.toggleLyrics()
     }
 
     @objc func openSettings(_ sender: Any?) {

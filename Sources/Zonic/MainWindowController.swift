@@ -3,6 +3,7 @@ import AppKit
 final class MainWindowController: NSWindowController, NSWindowDelegate {
     private let web = WebController()
     private let chrome = ChromeBar()
+    private var lyricsView: LyricsView?
 
     init() {
         let window = NSWindow(
@@ -25,6 +26,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         wireActions()
 
         PlayerBridge.shared.web = web
+        PlayerBridge.shared.window = self
 
         web.onStateChange = { [weak self] state in self?.applyState(state) }
         web.onLoading = { [weak self] loading in self?.chrome.setLoading(loading) }
@@ -95,9 +97,44 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
 
     private func applyState(_ state: PlayerState) {
         chrome.update(state: state)
+        lyricsView?.update(state: state)
         Scrobbler.shared.observe(state)
         let title = state.hasTrack ? state.displayText : "Zonic"
         if window?.title != title { window?.title = title }
+    }
+
+    /// The lyrics screen sits above the page, so it can be richer than anything the
+    /// web view itself could render.
+    func toggleLyrics() {
+        if let view = lyricsView {
+            hideLyrics(view)
+        } else {
+            showLyrics()
+        }
+    }
+
+    private func showLyrics() {
+        guard let content = window?.contentView else { return }
+        let view = LyricsView(frame: content.bounds)
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.onClose = { [weak self] in self?.toggleLyrics() }
+        view.onSeek = { [weak self] time in self?.web.seek(to: time) }
+        content.addSubview(view)
+        NSLayoutConstraint.activate([
+            view.leadingAnchor.constraint(equalTo: content.leadingAnchor),
+            view.trailingAnchor.constraint(equalTo: content.trailingAnchor),
+            view.topAnchor.constraint(equalTo: content.topAnchor),
+            view.bottomAnchor.constraint(equalTo: content.bottomAnchor)
+        ])
+        lyricsView = view
+        view.update(state: web.state)
+        window?.makeFirstResponder(view)
+    }
+
+    private func hideLyrics(_ view: LyricsView) {
+        view.removeFromSuperview()
+        lyricsView = nil
+        window?.makeFirstResponder(web.webView)
     }
 
     private func syncNavigation() {

@@ -63,6 +63,13 @@ enum MainMenu {
 
         playbackMenu.addItem(.separator())
 
+        let lyrics = NSMenuItem(title: "Lyrics", action: #selector(PlayerBridge.toggleLyrics(_:)), keyEquivalent: "l")
+        lyrics.keyEquivalentModifierMask = [.command, .shift]
+        lyrics.target = PlayerBridge.shared
+        playbackMenu.addItem(lyrics)
+
+        playbackMenu.addItem(.separator())
+
         let seekForward = NSMenuItem(title: "Skip Forward 10 Seconds", action: #selector(PlayerBridge.seekForward(_:)), keyEquivalent: "\u{F703}")
         seekForward.keyEquivalentModifierMask = [.command, .shift]
         seekForward.target = PlayerBridge.shared
