@@ -12,7 +12,7 @@
 </div>
 
 > [!NOTE]
-> This project was built with [Gorkie](https://github.com/techwithanirudh/gorkie), an AI assistant.
+> This project was built with [Gorkie](https://github.com/techwithanirudh/gorkie), and OpenCode, both of which are an AI assistant.
 > The code, the releases and this README were written by AI, with [Jacob](https://github.com/SmartSparkCoding)
 > directing, testing and deciding what ships. Every build is built and published by GitHub Actions from
 > the source in this repo, so you can read exactly what you are running.
@@ -166,7 +166,7 @@ around it or through the same media session your browser uses.
   [LRCLIB](https://lrclib.net) for the words.
 - [Last.fm](https://www.last.fm/) for an API that still just works.
 - Everyone who installed a 0.x build, hit a bug and said so.
-- Claude for writing the code, and [Jacob](https://github.com/SmartSparkCoding) for flying it.
+- Gorkie and OpenCOde for writing the code, and [Jacob](https://jacob.navaratne.uk/) for flying it.
 
 ## Legal
 
