@@ -87,8 +87,9 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
     /// finish-the-track fallback.
     func syncOptions() {
         let finish = ThemeManager.shared.finishTrackSkips ? "true" : "false"
+        let crossfade = ThemeManager.shared.crossfadeSeconds
         webView.evaluateJavaScript(
-            "window.__zonic && window.__zonic.options({ finishTrack: \(finish) });",
+            "window.__zonic && window.__zonic.options({ finishTrack: \(finish), crossfade: \(crossfade) });",
             completionHandler: nil
         )
     }
