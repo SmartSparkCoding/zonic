@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Zonic - Amazon Music, without the browser</title>
+<meta name="description" content="A native Mac window for Amazon Music. Media keys, real controls, twelve themes, synced lyrics, Last.fm scrobbling, and updates that install themselves. About 1 MB, no Electron.">
+<meta property="og:title" content="Zonic - Amazon Music, without the browser">
+<meta property="og:description" content="A native Mac window for Amazon Music. Media keys, real controls, twelve themes, synced lyrics, self-installing updates. About 1 MB.">
+<meta property="og:image" content="assets/window.png">
+<meta property="og:type" content="website">
+<link rel="icon" href="assets/logo.png">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header class="nav">
+ <div class="nav-inner">
+  <a class="brand" href="#top" aria-label="Zonic home">
+    <img src="assets/logo.png" alt="" width="26" height="26">
+    <span>Zonic</span>
+  </a>
+  <nav class="nav-links" aria-label="Sections">
+    <a href="#features">Features</a>
+    <a href="#themes">Themes</a>
+    <a href="#install">Install</a>
+  </nav>
+  <a class="btn btn-primary btn-nav" href="https://github.com/SmartSparkCoding/zonic/releases/latest">Download for macOS</a>
+ </div>
+</header>
+
+<main id="top">
+
+  <section class="hero">
+    <div class="hero-copy">
+      <h1>Amazon Music,<br>without the browser.</h1>
+      <p class="lede">A native Mac window for the music you already pay for. Media keys, real controls, themes, lyrics, self-installing updates.</p>
+      <div class="cta-row">
+        <a class="btn btn-primary" href="https://github.com/SmartSparkCoding/zonic/releases/latest">Download for macOS</a>
+        <a class="btn btn-ghost" href="https://github.com/SmartSparkCoding/zonic">Read the source</a>
+      </div>
+      <p class="hero-meta">macOS 12 or later. Apple silicon and Intel. Free and MIT licensed.</p>
+    </div>
+    <figure class="hero-shot">
+      <img src="assets/window.png" width="1600" height="914" alt="Zonic playing My Soundtrack on Amazon Music, tinted in Gruvbox Dark.">
+    </figure>
+  </section>
+
+  <section class="features" id="features">
+    <h2 class="section-title">What the app actually adds</h2>
+    <div class="bento">
+
+      <article class="cell cell-wide">
+        <h3>Your keyboard works</h3>
+        <p>Play, pause, skip and go back from the media keys on any keyboard, and one single honest entry in Control Center instead of two. Space plays and pauses as long as you are not typing.</p>
+        <div class="keys" aria-hidden="true">
+          <kbd>space</kbd><kbd>&#8984; &#8594;</kbd><kbd>&#8984; &#8592;</kbd><kbd>&#8679; &#8984; &#8594;</kbd>
+        </div>
+      </article>
+
+      <article class="cell cell-stat">
+        <p class="stat">1<span>MB</span></p>
+        <p class="stat-note">the whole binary. No Electron, no helper process, no daemon sitting in your menu bar.</p>
+      </article>
+
+      <article class="cell cell-themes">
+        <h3>Twelve themes</h3>
+        <p>Gruvbox Dark, Nord, Catppuccin Mocha, Tokyo Night, Dracula, One Dark, Solarized, AMOLED Black, Rose Pine, plus the system three. They recolour the bar, the settings, the lyrics screen and the Amazon page itself.</p>
+      </article>
+
+      <article class="cell">
+        <h3>Lyrics that keep up</h3>
+        <p>A full window of synced lines, pulled from LRCLIB. Click a line to jump to it. Artwork, transport and progress sit on the left so you never lose the song.</p>
+      </article>
+
+      <article class="cell">
+        <h3>Last.fm, if you want it</h3>
+        <p>Scrobbles at the halfway point, sends now playing on every track change, and loves the current song with <kbd>&#8984; L</kbd>. Your own API key, stored on your machine.</p>
+      </article>
+
+      <article class="cell">
+        <h3>Updates that install themselves</h3>
+        <p>Zonic asks GitHub for the latest release, checks the download against the published SHA256, swaps the app once it quits, and reopens. You never see a dmg again after the first one.</p>
+      </article>
+
+      <article class="cell cell-wide cell-quiet">
+        <h3>Honest about skips</h3>
+        <p>Amazon caps how many tracks you can skip in an hour, and that check happens on their servers, so no client can lift it. Zonic does not pretend otherwise. Instead, when a skip is refused it can run the current track to its last second so the queue moves on anyway, and the scrubber drives Amazon's own progress bar so seeking actually lands.</p>
+      </article>
+
+    </div>
+  </section>
+
+  <section class="themes" id="themes">
+    <h2 class="section-title">Pick a theme, watch it land</h2>
+    <p class="section-sub">Every theme repaints the bar you actually look at, and the Amazon page behind it. Here is what each palette does to the window.</p>
+
+    <div class="theme-board">
+      <div class="theme-chips" role="group" aria-label="Choose a theme to preview">
+        <button class="chip" data-theme="gruvbox" style="--c1:#282828;--c2:#3c3836;--c3:#ebdbb2;--c4:#d5c4a1;--c5:#8ec07c" aria-pressed="true">Gruvbox Dark</button>
+        <button class="chip" data-theme="nord" style="--c1:#2e3440;--c2:#3b4252;--c3:#eceff4;--c4:#d8dee9;--c5:#88c0d0" aria-pressed="false">Nord</button>
+        <button class="chip" data-theme="catppuccin" style="--c1:#1e1e2e;--c2:#313244;--c3:#cdd6f4;--c4:#bac2de;--c5:#cba6f7" aria-pressed="false">Catppuccin Mocha</button>
+        <button class="chip" data-theme="tokyo" style="--c1:#1a1b26;--c2:#24283b;--c3:#c0caf5;--c4:#a9b1d6;--c5:#7aa2f7" aria-pressed="false">Tokyo Night</button>
+        <button class="chip" data-theme="dracula" style="--c1:#282a36;--c2:#44475a;--c3:#f8f8f2;--c4:#6272a4;--c5:#bd93f9" aria-pressed="false">Dracula</button>
+        <button class="chip" data-theme="amoled" style="--c1:#000000;--c2:#121212;--c3:#f2f2f2;--c4:#a0a0a0;--c5:#4dd4ac" aria-pressed="false">AMOLED Black</button>
+      </div>
+
+      <div class="preview" id="preview" style="--c1:#282828;--c2:#3c3836;--c3:#ebdbb2;--c4:#d5c4a1;--c5:#8ec07c">
+        <div class="preview-bar">
+          <span class="dots"><i></i><i></i><i></i></span>
+          <span class="preview-title">My Soundtrack</span>
+          <span class="preview-extra"></span>
+        </div>
+        <div class="preview-body">
+          <div class="preview-top">
+            <p class="preview-name" id="preview-name">Gruvbox Dark</p>
+            <p class="preview-note" id="preview-note">Warm charcoal with a cream text and a green accent. The one the screenshots on this page use.</p>
+          </div>
+          <div class="preview-rows" aria-hidden="true">
+            <span class="mock-row"><i class="mock-art"></i><i class="mock-line"></i><i class="mock-time"></i></span>
+            <span class="mock-row"><i class="mock-art"></i><i class="mock-line short"></i><i class="mock-time"></i></span>
+            <span class="mock-row"><i class="mock-art"></i><i class="mock-line"></i><i class="mock-time"></i></span>
+          </div>
+          <div class="swatches"><span></span><span></span><span></span><span></span><span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="detail">
+    <figure class="detail-strip">
+      <img src="assets/player.png" width="1300" height="62" alt="Amazon Music's player bar with the like, repeat, previous, play, next and shuffle controls, tinted in Gruvbox Dark.">
+      <figcaption>Amazon's own player, untouched and still working, with the accent following your theme. Zonic does not reimplement the music, it just gives it a window worth using: a 34 point bar above with back, forward, reload, what is playing, and a scrubber that actually moves.</figcaption>
+    </figure>
+  </section>
+
+  <section class="install" id="install">
+    <h2 class="section-title">Three steps, then never again</h2>
+    <ol class="steps">
+      <li>
+        <h3>Download</h3>
+        <p>Grab the dmg from the latest release. macOS will warn you the first time, because the app is signed ad hoc rather than notarised by Apple.</p>
+      </li>
+      <li>
+        <h3>Drag</h3>
+        <p>Drop Zonic into Applications, then right click it and choose Open once. After that it launches like anything else.</p>
+      </li>
+      <li>
+        <h3>Open</h3>
+        <p>Sign in to Amazon Music in the window. If macOS is stubborn about the quarantine flag, this clears it.</p>
+        <pre><code>xattr -dr com.apple.quarantine /Applications/Zonic.app</code></pre>
+      </li>
+    </ol>
+    <p class="install-note">Every update after that arrives through the app itself. <a href="https://github.com/SmartSparkCoding/zonic#readme">The readme</a> covers building it from source if you would rather compile it.</p>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="footer-top">
+    <div class="footer-brand">
+      <img src="assets/logo.png" alt="" width="22" height="22">
+      <span>Zonic</span>
+    </div>
+    <nav class="footer-links" aria-label="Project links">
+      <a href="https://github.com/SmartSparkCoding/zonic">Source</a>
+      <a href="https://github.com/SmartSparkCoding/zonic/releases">Releases</a>
+      <a href="https://github.com/SmartSparkCoding/zonic/issues">Issues</a>
+      <a href="https://github.com/SmartSparkCoding/zonic/blob/init/LICENSE">MIT licence</a>
+    </nav>
+  </div>
+  <p class="disclaimer">Zonic is an unofficial client, made by people who wanted a better window. It is not affiliated with, approved by or endorsed by Amazon, and Amazon Music is a trademark of Amazon.com, Inc. Your login, your library and your listening stay in your own copy of the app: nothing is collected, and the only things it talks to are Amazon, GitHub for updates, LRCLIB for lyrics, and Last.fm if you connect it.</p>
+</footer>
+
+<script src="site.js"></script>
+</body>
+</html>
