@@ -16,6 +16,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         installSpaceMonitor()
         NSApp.activate(ignoringOtherApps: true)
 
+        // A new version should say what changed, once, without blocking the first play.
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.2) {
+            WhatsNewWindowController.presentIfNeeded()
+        }
+
         // Quiet check a few seconds after launch, so a fresh version is offered without
         // getting in the way of the first play.
         if ThemeManager.shared.autoCheckUpdates {
@@ -23,6 +28,10 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
                 Updater.shared.checkForUpdates(userInitiated: false)
             }
         }
+    }
+
+    @objc func showWhatsNew(_ sender: Any?) {
+        WhatsNewWindowController.present()
     }
 
     func showSettings(_ sender: Any?) {

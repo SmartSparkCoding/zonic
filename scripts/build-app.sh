@@ -39,6 +39,10 @@ cp packaging/Info.plist "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleShortVersionString $VERSION" "$APP/Contents/Info.plist"
 /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$APP/Contents/Info.plist"
 
+if [ -f RELEASE_NOTES.md ]; then
+  cp RELEASE_NOTES.md "$APP/Contents/Resources/RELEASE_NOTES.md"
+fi
+
 if [ -f packaging/icon.png ]; then
   echo "==> building app icon"
   bash scripts/make-icns.sh packaging/icon.png "$APP/Contents/Resources/AppIcon.icns"
