@@ -90,6 +90,8 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         chrome.reloadButton.action = #selector(PlayerBridge.reloadPage(_:))
         chrome.appearanceButton.target = bridge
         chrome.appearanceButton.action = #selector(PlayerBridge.cycleTheme(_:))
+        chrome.lyricsButton.target = self
+        chrome.lyricsButton.action = #selector(lyricsButtonTapped(_:))
         chrome.overflowButton.target = self
         chrome.overflowButton.action = #selector(showOverflowMenu(_:))
         chrome.onSeek = { [weak self] seconds in self?.web.seek(to: seconds) }
@@ -154,7 +156,18 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
     }
 
     private func applyTheme() {
-        chrome.applyTheme(ThemeManager.shared.palette)
+        let palette = ThemeManager.shared.palette
+        chrome.applyTheme(palette)
+        // The page sits on the window background while it loads, so tint it too rather
+        // than flashing white inside a dark themed window.
+        window?.backgroundColor = palette.isNative ? .windowBackgroundColor : palette.backgroundColor
+        web.webView.underPageBackgroundColor = palette.isNative
+            ? .windowBackgroundColor
+            : palette.backgroundColor
+    }
+
+    @objc private func lyricsButtonTapped(_ sender: Any?) {
+        toggleLyrics()
     }
 
     @objc private func showOverflowMenu(_ sender: NSButton) {
