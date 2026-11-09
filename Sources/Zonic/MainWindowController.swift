@@ -119,6 +119,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         view.translatesAutoresizingMaskIntoConstraints = false
         view.onClose = { [weak self] in self?.toggleLyrics() }
         view.onSeek = { [weak self] time in self?.web.seek(to: time) }
+        view.onTransport = { action in PlayerBridge.shared.handleRemote(action) }
         content.addSubview(view)
         NSLayoutConstraint.activate([
             view.leadingAnchor.constraint(equalTo: content.leadingAnchor),
