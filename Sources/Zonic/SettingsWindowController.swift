@@ -7,7 +7,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
 
     private let themePopup = NSPopUpButton(frame: .zero, pullsDown: false)
     private let swatch = PaletteSwatchView()
-    private let skinCheck = NSButton(checkboxWithTitle: "Recolour the Amazon Music page to match the theme", target: nil, action: nil)
+    private let skinPopup = NSPopUpButton(frame: .zero, pullsDown: false)
     private let seekCheck = NSButton(checkboxWithTitle: "Show a scrubber and allow skipping inside a track", target: nil, action: nil)
     private let finishCheck = NSButton(checkboxWithTitle: "When Amazon refuses a skip, finish the track so the next one starts", target: nil, action: nil)
     private let updateCheck = NSButton(checkboxWithTitle: "Check for updates automatically", target: nil, action: nil)
@@ -115,11 +115,17 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             swatch.widthAnchor.constraint(equalTo: stack.widthAnchor)
         ])
 
-        skinCheck.target = self
-        skinCheck.action = #selector(skinToggled)
-        skinCheck.font = .systemFont(ofSize: 12)
-        stack.addArrangedSubview(skinCheck)
-        stack.addArrangedSubview(note("The page is repainted from the palette: colours, backgrounds, controls and scrollbars. Album art is left alone. Amazon ships hashed class names, so a redesign can leave patches."))
+        stack.addArrangedSubview(note("Amazon Music page"))
+        for mode in ThemeManager.SkinMode.allCases {
+            let item = NSMenuItem(title: mode.label, action: nil, keyEquivalent: "")
+            item.representedObject = mode.rawValue
+            skinPopup.menu?.addItem(item)
+        }
+        skinPopup.target = self
+        skinPopup.action = #selector(skinChanged)
+        skinPopup.font = .systemFont(ofSize: 12)
+        stack.addArrangedSubview(skinPopup)
+        stack.addArrangedSubview(note("Invert is the reliable one: it flips the whole page and flips the artwork back, so it cannot miss. Tint repaints the page from the palette and looks closer to the theme, but Amazon ships hashed class names, so it can leave patches. Album art is never touched."))
     }
 
     private func buildPlaybackSection() {
@@ -224,7 +230,10 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             themePopup.selectItem(at: index)
         }
         swatch.palette = palette
-        skinCheck.state = ThemeManager.shared.skinsPage ? .on : .off
+        let mode = ThemeManager.shared.skinMode
+        if let index = ThemeManager.SkinMode.allCases.firstIndex(of: mode) {
+            skinPopup.selectItem(at: index)
+        }
         seekCheck.state = ThemeManager.shared.seekControlsEnabled ? .on : .off
         finishCheck.state = ThemeManager.shared.finishTrackSkips ? .on : .off
         updateCheck.state = ThemeManager.shared.autoCheckUpdates ? .on : .off
@@ -251,8 +260,10 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         ThemeManager.shared.set(Palette.palette(withID: id))
     }
 
-    @objc private func skinToggled() {
-        ThemeManager.shared.skinsPage = skinCheck.state == .on
+    @objc private func skinChanged() {
+        guard let raw = skinPopup.selectedItem?.representedObject as? String,
+              let mode = ThemeManager.SkinMode(rawValue: raw) else { return }
+        ThemeManager.shared.skinMode = mode
     }
 
     @objc private func seekToggled() {

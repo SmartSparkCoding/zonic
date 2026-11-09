@@ -109,26 +109,49 @@ final class ThemeManager: NSObject, NSMenuDelegate {
 
     private let themeKey = "zonic.theme"
     private let legacyKey = "zonic.appearance"
-    private let skinKey = "zonic.skinPage"
+    private let skinKey = "zonic.skinMode"
+    private let legacySkinKey = "zonic.skinPage"
     private let autoUpdateKey = "zonic.autoUpdateCheck"
     private let seekKey = "zonic.seekControls"
     private let finishKey = "zonic.finishTrackSkips"
 
     private(set) var palette: Palette = .system
 
-    /// Recolour the page itself, best effort. On by default: a themed window with an
-    /// untouched page looked half finished.
-    var skinsPage: Bool {
+    /// How the Amazon Music page itself gets recoloured.
+    enum SkinMode: String, CaseIterable {
+        case off, tint, invert
+
+        var label: String {
+            switch self {
+            case .off: return "Leave the page alone"
+            case .tint: return "Tint the page"
+            case .invert: return "Invert the page"
+            }
+        }
+    }
+
+    /// What to do with the page. Defaults to inverting for custom palettes, since that is
+    /// the only technique that does not depend on Amazon's obfuscated class names.
+    var skinMode: SkinMode {
         get {
-            if UserDefaults.standard.object(forKey: skinKey) == nil { return true }
-            return UserDefaults.standard.bool(forKey: skinKey)
+            if let raw = UserDefaults.standard.string(forKey: skinKey),
+               let mode = SkinMode(rawValue: raw) {
+                return mode
+            }
+            if let legacy = UserDefaults.standard.object(forKey: legacySkinKey) as? Bool {
+                return legacy ? (palette.isNative ? .off : .invert) : .off
+            }
+            return palette.isNative ? .off : .invert
         }
         set {
-            UserDefaults.standard.set(newValue, forKey: skinKey)
+            UserDefaults.standard.set(newValue.rawValue, forKey: skinKey)
             NotificationCenter.default.post(name: .themeDidChange, object: nil)
             NotificationCenter.default.post(name: .playerSettingsDidChange, object: nil)
         }
     }
+
+    /// Kept for callers that only care whether the page is being touched at all.
+    var skinsPage: Bool { skinMode != .off }
 
     var autoCheckUpdates: Bool {
         get {
@@ -220,8 +243,49 @@ final class ThemeManager: NSObject, NSMenuDelegate {
     ///
     /// This is the part most likely to need nudging when Amazon redesigns.
     func pageCSS() -> String {
-        guard skinsPage else { return "" }
+        switch skinMode {
+        case .off: return ""
+        case .tint: return tintCSS()
+        case .invert: return palette.isDark ? invertCSS() : tintCSS()
+        }
+    }
 
+    /// Optical skin: invert the whole page and flip the artwork back. This cannot miss,
+    /// because it does not care what Amazon calls its elements.
+    private func invertCSS() -> String {
+        let bg = palette.background
+        let accent = palette.accent
+        return """
+        :root, html { color-scheme: dark !important; }
+        html {
+          background-color: #ffffff !important;
+          filter: invert(0.93) hue-rotate(180deg) saturate(0.92) !important;
+        }
+        img, picture, video, canvas, svg, [style*="background-image" i] {
+          filter: invert(1) hue-rotate(180deg) !important;
+        }
+        html::after {
+          content: "";
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          z-index: 2147483646;
+          background-color: #__ACCENT__;
+          opacity: 0.14;
+          mix-blend-mode: color;
+        }
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #__BG__ !important; }
+        ::-webkit-scrollbar-thumb { background: #__ACCENT__ !important; border-radius: 5px; }
+        """
+        .replacingOccurrences(of: "__BG__", with: bg)
+        .replacingOccurrences(of: "__ACCENT__", with: accent)
+    }
+
+    /// Structural skin: repaint the page from the palette. Selectors are attribute and
+    /// ARIA based, and repeat [class] to out-specify Amazon's generated class names,
+    /// which is why the earlier universal rules never took effect.
+    private func tintCSS() -> String {
         let bg = palette.background
         let surface = palette.surface
         let fg = palette.foreground
@@ -230,93 +294,94 @@ final class ThemeManager: NSObject, NSMenuDelegate {
         let scheme = palette.isDark ? "dark" : "light"
 
         return """
-        :root { color-scheme: \(scheme) !important; }
-        html { background-color: #\(bg) !important; }
-        body { background-color: #\(bg) !important; color: #\(fg) !important; }
+        :root { color-scheme: __SCHEME__ !important; }
+        html, body { background-color: #__BG__ !important; color: #__FG__ !important; }
 
-        /* Flatten every fill, then paint the ones that carry meaning back on. */
-        body * {
+        html body [class][class][class]:not(img):not(video):not(canvas):not(svg):not(picture):not(path),
+        html body [id][id]:not(img):not(video):not(canvas):not(svg):not(picture):not(path),
+        html body div:not([class]):not([id]),
+        html body span:not([class]):not([id]),
+        html body section:not([class]),
+        html body ul:not([class]),
+        html body li:not([class]) {
           background-color: transparent !important;
-          border-color: #\(surface) !important;
-          outline-color: #\(accent) !important;
+          border-color: #__SURFACE__ !important;
         }
-        body * { color: inherit; }
 
-        /* Text. Amazon sets explicit whites and blacks all over the place. */
-        body, body p, body span, body div, body li, body label, body h1,
-        body h2, body h3, body h4, body h5, body h6, body strong, body small,
-        body time, body td, body th {
-          color: #\(fg) !important;
+        html body [class][class][class] { color: #__FG__ !important; }
+        html body h1, html body h2, html body h3, html body h4,
+        html body p, html body li, html body label, html body time,
+        html body strong, html body td, html body th { color: #__FG__ !important; }
+        html body a, html body a * { color: #__FG__ !important; }
+        html body a:hover, html body a:hover * { color: #__ACCENT__ !important; }
+        html body [aria-current], html body [aria-current] *,
+        html body [aria-selected="true"], html body [aria-selected="true"] * {
+          color: #__ACCENT__ !important;
         }
-        body a, body a span { color: #\(fg) !important; }
-        body a:hover, body a:hover span { color: #\(accent) !important; }
-        [aria-current], [aria-current] span, [aria-selected="true"],
-        [aria-selected="true"] span { color: #\(accent) !important; }
-        [aria-disabled="true"], [aria-disabled="true"] span,
-        [disabled], body small { color: #\(muted) !important; }
-        ::selection { background: #\(accent) !important; color: #\(bg) !important; }
-
-        /* Containers sit on the palette background; the player bar gets the surface tone. */
-        #root, #nav, #main, #page-container, #main-container, main, header, nav,
-        section, aside, article, footer, form, table, tbody, tr, td, th, ul, ol, li,
-        div, span { background-color: transparent !important; }
+        html body [aria-disabled="true"] *, html body [disabled] { color: #__MUTED__ !important; }
+        html body small, html body [class][class][class] small { color: #__MUTED__ !important; }
+        ::selection { background: #__ACCENT__ !important; color: #__BG__ !important; }
 
         [data-testid*="player" i], [class*="playerBar" i], [class*="player-bar" i],
         [class*="nowPlaying" i], [class*="playback" i], [class*="miniplayer" i],
         [role="region"][aria-label*="player" i] {
-          background-color: #\(surface) !important;
+          background-color: #__SURFACE__ !important;
         }
 
-        /* Interactive elements need to read as interactive once their fills are gone. */
         button, [role="button"], [role="menuitem"], [role="option"], [role="tab"] {
           background-color: transparent !important;
+          color: #__FG__ !important;
           border-radius: 6px !important;
         }
         button:hover, [role="button"]:hover, [role="menuitem"]:hover,
         [role="option"]:hover, [role="tab"]:hover {
-          background-color: #\(surface) !important;
+          background-color: #__SURFACE__ !important;
         }
         [aria-pressed="true"], [aria-checked="true"], [data-selected="true"] {
-          background-color: #\(surface) !important;
-          color: #\(accent) !important;
+          background-color: #__SURFACE__ !important;
         }
 
         input, textarea, select, [contenteditable="true"], [role="textbox"],
         [role="searchbox"] {
-          background-color: #\(surface) !important;
-          color: #\(fg) !important;
-          border: 1px solid #\(muted) !important;
+          background-color: #__SURFACE__ !important;
+          color: #__FG__ !important;
+          border: 1px solid #__MUTED__ !important;
           border-radius: 6px !important;
         }
-        input::placeholder, textarea::placeholder { color: #\(muted) !important; }
+        input::placeholder, textarea::placeholder { color: #__MUTED__ !important; }
 
-        /* Sliders and progress bars are the clearest signal of the accent colour. */
-        input[type="range"], [role="slider"] { accent-color: #\(accent) !important; }
+        input[type="range"], [role="slider"] {
+          accent-color: #__ACCENT__ !important;
+          background-color: #__MUTED__ !important;
+        }
         progress, [role="progressbar"], [role="progressbar"] > * {
-          background-color: #\(surface) !important;
-          color: #\(accent) !important;
-          accent-color: #\(accent) !important;
+          background-color: #__SURFACE__ !important;
+          color: #__ACCENT__ !important;
+          accent-color: #__ACCENT__ !important;
         }
 
-        /* Dialogs and menus float above the page and need an actual fill. */
         [role="dialog"], [role="menu"], [role="listbox"], [role="tooltip"],
         [role="alertdialog"], [class*="modal" i], [class*="dialog" i],
-        [class*="popover" i], [class*="dropdown" i], [class*="menu" i][class*="list" i] {
-          background-color: #\(surface) !important;
-          color: #\(fg) !important;
-          border: 1px solid #\(muted) !important;
+        [class*="popover" i], [class*="dropdown" i] {
+          background-color: #__SURFACE__ !important;
+          color: #__FG__ !important;
+          border: 1px solid #__MUTED__ !important;
           border-radius: 10px !important;
         }
 
         ::-webkit-scrollbar { width: 10px; height: 10px; }
-        ::-webkit-scrollbar-track { background: #\(bg) !important; }
-        ::-webkit-scrollbar-thumb {
-          background: #\(muted) !important;
-          border-radius: 5px !important;
-        }
-        ::-webkit-scrollbar-thumb:hover { background: #\(accent) !important; }
+        ::-webkit-scrollbar-track { background: #__BG__ !important; }
+        ::-webkit-scrollbar-thumb { background: #__MUTED__ !important; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #__ACCENT__ !important; }
         """
+        .replacingOccurrences(of: "__SCHEME__", with: scheme)
+        .replacingOccurrences(of: "__SURFACE__", with: surface)
+        .replacingOccurrences(of: "__MUTED__", with: muted)
+        .replacingOccurrences(of: "__ACCENT__", with: accent)
+        .replacingOccurrences(of: "__FG__", with: fg)
+        .replacingOccurrences(of: "__BG__", with: bg)
     }
+
 }
 
 extension NSColor {

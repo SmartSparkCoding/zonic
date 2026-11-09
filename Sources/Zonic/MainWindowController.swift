@@ -145,6 +145,7 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
         menu.addItem(withTitle: "Actual Size", action: #selector(PlayerBridge.zoomReset(_:)), keyEquivalent: "").target = PlayerBridge.shared
         menu.addItem(.separator())
         menu.addItem(withTitle: "Copy Player Diagnostics", action: #selector(copyDiagnostics), keyEquivalent: "").target = self
+        menu.addItem(withTitle: "Copy Page Markup", action: #selector(copyPageReport), keyEquivalent: "").target = self
         menu.addItem(withTitle: "Love on Last.fm", action: #selector(PlayerBridge.loveTrack(_:)), keyEquivalent: "").target = PlayerBridge.shared
         menu.addItem(.separator())
         menu.addItem(withTitle: "Check for Updates…", action: #selector(Updater.checkNow(_:)), keyEquivalent: "").target = Updater.shared
@@ -164,6 +165,24 @@ final class MainWindowController: NSWindowController, NSWindowDelegate {
             let alert = NSAlert()
             alert.messageText = "Player diagnostics copied"
             alert.informativeText = text
+            alert.addButton(withTitle: "OK")
+            if let window = self?.window {
+                alert.beginSheetModal(for: window, completionHandler: nil)
+            } else {
+                alert.runModal()
+            }
+        }
+    }
+    /// Copies what the page is actually painted with, for fixing the skin selectors.
+    @objc private func copyPageReport() {
+        web.pageReport { [weak self] text in
+            let pasteboard = NSPasteboard.general
+            pasteboard.clearContents()
+            pasteboard.setString(text, forType: .string)
+
+            let alert = NSAlert()
+            alert.messageText = "Page markup copied"
+            alert.informativeText = "Paste it into the chat and the skin can target Amazon's real class names."
             alert.addButton(withTitle: "OK")
             if let window = self?.window {
                 alert.beginSheetModal(for: window, completionHandler: nil)

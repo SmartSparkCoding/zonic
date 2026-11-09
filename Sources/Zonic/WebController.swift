@@ -118,6 +118,44 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
         }
     }
 
+    /// Dumps the shape of the page so skin selectors can be written against the real
+    /// markup instead of guessed class names.
+    func pageReport(_ completion: @escaping (String) -> Void) {
+        let js = """
+        (function () {
+          var out = [];
+          var seen = {};
+          var els = document.querySelectorAll('div,header,footer,nav,section,aside,main,button,input,span,a,li');
+          for (var i = 0; i < els.length && out.length < 70; i++) {
+            var e = els[i];
+            var r = e.getBoundingClientRect();
+            if (r.width < 40 || r.height < 14) continue;
+            var cs = window.getComputedStyle(e);
+            var bg = cs.backgroundColor;
+            var colour = cs.color;
+            if ((bg === 'rgba(0, 0, 0, 0)' || bg === 'transparent') && r.width * r.height < 30000) continue;
+            var cls = (typeof e.className === 'string' ? e.className : '').slice(0, 70);
+            var key = e.tagName + '|' + cls + '|' + bg + '|' + colour;
+            if (seen[key]) continue;
+            seen[key] = 1;
+            out.push(e.tagName.toLowerCase() + ' | ' + (cls || '-') + ' | bg ' + bg + ' | fg ' + colour + ' | ' + Math.round(r.width) + 'x' + Math.round(r.height));
+          }
+          return out.join('\n');
+        })();
+        """
+        webView.evaluateJavaScript("JSON.stringify(\"\")") { [weak self] _, _ in
+            guard let self else { return }
+            self.webView.evaluateJavaScript(js) { result, error in
+                if let error {
+                    completion("page report failed: \(error.localizedDescription)")
+                    return
+                }
+                let text = result as? String ?? "nothing matched"
+                completion(text)
+            }
+        }
+    }
+
     func zoom(by delta: Double) {
         webView.pageZoom = min(2.2, max(0.65, webView.pageZoom + delta))
     }
