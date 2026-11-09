@@ -343,9 +343,62 @@ enum Bridge {
         return 'clicked';
       };
 
+      // ---- Volume ramps ----
+      // A true overlapping crossfade needs two decoders, which a DRM stream in a web view
+      // cannot give us. This fades the tail of the outgoing track and the head of the
+      // incoming one instead, with the length capped by what is actually left.
+      var fadeBase = null;
+      var fadeRun = null;
+
+      var rampTo = function (target, seconds) {
+        var node = mediaElement();
+        if (!node) { return false; }
+        if (fadeRun) { cancelAnimationFrame(fadeRun); fadeRun = null; }
+        if (fadeBase === null) { fadeBase = node.volume; }
+        var from = node.volume;
+        var started = performance.now();
+        var span = Math.max(80, (seconds || 0) * 1000);
+        var step = function (now) {
+          var t = Math.min(1, (now - started) / span);
+          var value = from + (target - from) * t;
+          try { node.volume = Math.max(0, Math.min(1, value)); } catch (e) {}
+          fadeRun = t < 1 ? requestAnimationFrame(step) : null;
+        };
+        fadeRun = requestAnimationFrame(step);
+        return true;
+      };
+
+      var crossfadeSeconds = function () {
+        var options = window.__zonicOptions || {};
+        var value = Number(options.crossfade || 0);
+        return isFinite(value) && value > 0 ? Math.min(15, value) : 0;
+      };
+
+      var lastFadeKey = '';
+      var applyFade = function (progress) {
+        var seconds = crossfadeSeconds();
+        var node = mediaElement();
+        if (!node) { return; }
+        var key = trackKey();
+        if (key !== lastFadeKey) {
+          var changed = lastFadeKey !== '';
+          lastFadeKey = key;
+          if (changed && seconds > 0 && fadeBase !== null) {
+            rampTo(fadeBase, Math.min(seconds, 3));
+          }
+          return;
+        }
+        if (!seconds || !(progress.duration > 0)) { return; }
+        var remaining = progress.duration - progress.position;
+        if (remaining > 0.2 && remaining <= seconds) {
+          rampTo(0, remaining);
+        }
+      };
+
       var tick = function () {
         var media = readMedia();
         var progress = readPosition();
+        applyFade(progress);
         post({
           title: (media && media.title) || document.title || '',
           artist: (media && media.artist) || '',

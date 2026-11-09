@@ -8,6 +8,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     private let themePopup = NSPopUpButton(frame: .zero, pullsDown: false)
     private let swatch = PaletteSwatchView()
     private let skinPopup = NSPopUpButton(frame: .zero, pullsDown: false)
+    private let crossfadePopup = NSPopUpButton(frame: .zero, pullsDown: false)
     private let seekCheck = NSButton(checkboxWithTitle: "Show a scrubber and allow skipping inside a track", target: nil, action: nil)
     private let finishCheck = NSButton(checkboxWithTitle: "When Amazon refuses a skip, finish the track so the next one starts", target: nil, action: nil)
     private let updateCheck = NSButton(checkboxWithTitle: "Check for updates automatically", target: nil, action: nil)
@@ -141,6 +142,17 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
         finishCheck.font = .systemFont(ofSize: 12)
         stack.addArrangedSubview(finishCheck)
 
+        stack.addArrangedSubview(note("Crossfade between tracks"))
+        for seconds in [0, 2, 4, 6, 8] {
+            let item = NSMenuItem(title: seconds == 0 ? "Off" : "\(seconds) seconds", action: nil, keyEquivalent: "")
+            item.representedObject = seconds
+            crossfadePopup.menu?.addItem(item)
+        }
+        crossfadePopup.target = self
+        crossfadePopup.action = #selector(crossfadeChanged)
+        crossfadePopup.font = .systemFont(ofSize: 12)
+        stack.addArrangedSubview(crossfadePopup)
+        stack.addArrangedSubview(note("Fades the tail of the outgoing track and the head of the incoming one. A truly overlapping crossfade needs two decoders, and the DRM stream in the web view will not give up that, so this is a fade either side of the boundary rather than two songs playing over each other."))
         stack.addArrangedSubview(note("Amazon counts skip presses per hour on its side, so nothing here can lift that. Finishing a track is a different path to the next song: playback ends naturally and the queue rolls on. Skipping inside a track drives Amazon's own progress bar."))
     }
 
@@ -230,6 +242,10 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
             themePopup.selectItem(at: index)
         }
         swatch.palette = palette
+        let seconds = ThemeManager.shared.crossfadeSeconds
+        let options = [0, 2, 4, 6, 8]
+        crossfadePopup.selectItem(at: options.firstIndex(where: { $0 == seconds }) ?? 2)
+
         let mode = ThemeManager.shared.skinMode
         if let index = ThemeManager.SkinMode.allCases.firstIndex(of: mode) {
             skinPopup.selectItem(at: index)
@@ -258,6 +274,11 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
     @objc private func themeChanged() {
         guard let id = themePopup.selectedItem?.representedObject as? String else { return }
         ThemeManager.shared.set(Palette.palette(withID: id))
+    }
+
+    @objc private func crossfadeChanged() {
+        guard let seconds = crossfadePopup.selectedItem?.representedObject as? Int else { return }
+        ThemeManager.shared.crossfadeSeconds = seconds
     }
 
     @objc private func skinChanged() {

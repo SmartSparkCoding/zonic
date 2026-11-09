@@ -114,6 +114,7 @@ final class ThemeManager: NSObject, NSMenuDelegate {
     private let autoUpdateKey = "zonic.autoUpdateCheck"
     private let seekKey = "zonic.seekControls"
     private let finishKey = "zonic.finishTrackSkips"
+    private let crossfadeKey = "zonic.crossfade"
 
     private(set) var palette: Palette = .system
 
@@ -152,6 +153,18 @@ final class ThemeManager: NSObject, NSMenuDelegate {
 
     /// Kept for callers that only care whether the page is being touched at all.
     var skinsPage: Bool { skinMode != .off }
+
+    /// Seconds of fade at each track boundary. Zero means off.
+    var crossfadeSeconds: Int {
+        get {
+            if UserDefaults.standard.object(forKey: crossfadeKey) == nil { return 4 }
+            return max(0, min(15, UserDefaults.standard.integer(forKey: crossfadeKey)))
+        }
+        set {
+            UserDefaults.standard.set(max(0, min(15, newValue)), forKey: crossfadeKey)
+            NotificationCenter.default.post(name: .playerSettingsDidChange, object: nil)
+        }
+    }
 
     var autoCheckUpdates: Bool {
         get {
