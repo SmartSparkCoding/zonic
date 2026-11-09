@@ -41,6 +41,11 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
 
         // Put the stored login back before the first load, then keep it up to date.
         SessionVault.shared.attach(to: configuration.websiteDataStore)
+        if let bootstrap = SessionVault.shared.storageBootstrapScript() {
+            controller.addUserScript(
+                WKUserScript(source: bootstrap, injectionTime: .atDocumentStart, forMainFrameOnly: true)
+            )
+        }
 
         loadHome()
     }
@@ -104,10 +109,12 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
                 return
             }
             self.webView.configuration.websiteDataStore.httpCookieStore.getAllCookies { cookies in
-                let amazon = cookies.filter { $0.domain.lowercased().contains("amazon") }.count
+                let amazonCookies = cookies.filter { $0.domain.lowercased().contains("amazon") }
+                let sessionScoped = amazonCookies.filter { $0.expiresDate == nil }.count
                 let lines = [
-                    "login cookies in store: \(amazon)",
+                    "login cookies in store: \(amazonCookies.count) (\(sessionScoped) session-scoped)",
                     "login cookies in vault: \(SessionVault.shared.storedCookieCount)",
+                    "page storage keys in vault: \(SessionVault.shared.storedStorageKeyCount)",
                     "vault file: \(SessionVault.shared.vaultPath)",
                     "last.fm calls:",
                     Scrobbler.shared.logText,
@@ -198,8 +205,9 @@ final class WebController: NSObject, WKNavigationDelegate, WKUIDelegate, WKScrip
         applyTheme()
         syncOptions()
         refreshState()
-        // A page finishing is when the login cookies are most likely to have just changed.
+        // A page finishing is when the login is most likely to have just changed.
         SessionVault.shared.capture()
+        SessionVault.shared.captureStorage(from: webView)
     }
 
     func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
