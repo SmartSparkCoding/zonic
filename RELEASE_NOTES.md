@@ -1,25 +1,17 @@
-Zonic stays signed in.
+# Zonic 0.26
 
-- **Login survives a restart.** The Amazon cookies are now copied to a small file in
-  `~/Library/Application Support/Zonic/cookies.json` as they change, and put back into the
-  webview before the first page load. WebKit's own store was losing the session between
-  launches, usually because Amazon hands out session scoped auth cookies unless "Keep me
-  signed in" is ticked, and cookie writes can be dropped when the app is killed during an
-  update swap. Either way the login is restored now.
-- Cookies are captured when a page finishes loading, when the app loses focus, and when it
-  quits. The file is readable by your user only (`0600`) and never leaves the machine.
-- **Copy Player Diagnostics** now also reports how many Amazon cookies are in the store
-  and how many are in the vault, which is the quick way to tell whether a logout is the
-  app's fault or Amazon's.
-- **Last.fm fixes.** Scrobbling no longer depends on the page reporting a playhead: when
-  it reports zero, a pause aware clock counts the listening instead, so a track still
-  scrobbles at half way. The same song playing twice in one session scrobbles twice, which
-  it did not before.
-- **Send Test Scrobble** in Settings sends one scrobble immediately, ignoring the listening
-  rules, and shows Last.fm's own answer. The last eight API answers are in the diagnostics
-  dump too, so a refusal names its error code instead of failing quietly.
+The page finally follows the theme.
 
-The app is ad-hoc signed, not notarised. On first launch, right click Zonic and
-choose Open, or run:
+### Page skinning done properly
+The old skin flattened the page with universal selectors, which Amazon's generated class names out-specified, so almost nothing changed. There are now two engines, chosen in Settings under "Amazon Music page":
 
-    xattr -dr com.apple.quarantine /Applications/Zonic.app
+- Invert (default for custom palettes): flips the whole page and flips artwork back. It cannot miss, because it never looks at Amazon's markup.
+- Tint: repaints the page from the palette with selectors that out-specify Amazon's classes. Closer to the palette, more likely to need a nudge after a redesign.
+
+### Copy Page Markup
+New item in the overflow menu. Copies a fingerprint of what the page is actually painted with, so the skin can be written against real class names instead of guesses.
+
+### Also
+- The skin now applies to every palette, including Match System.
+- color-scheme is set, so scrollbars, form controls and menus match.
+- Album art, video and canvases are excluded from every rule.
