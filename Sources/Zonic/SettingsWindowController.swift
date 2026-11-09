@@ -238,6 +238,7 @@ final class SettingsWindowController: NSWindowController, NSWindowDelegate {
 
     @objc func refresh() {
         let palette = ThemeManager.shared.palette
+        window?.backgroundColor = palette.isNative ? .windowBackgroundColor : palette.backgroundColor
         if let index = Palette.all.firstIndex(where: { $0.id == palette.id }) {
             themePopup.selectItem(at: index)
         }
