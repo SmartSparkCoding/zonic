@@ -3,7 +3,7 @@
 A smaller, tidier build. Nothing new to learn, it just weighs less.
 
 ### Lighter
-- The binary is now compiled for size and stripped of local symbols, so the download is smaller than the last release with no features taken out.
+- Built for size now, and stripped of local symbols, so the app is not carrying anything it does not use at runtime.
 - Dead code from earlier versions is gone: an unused polling constant, a leftover compatibility shim, and a duplicated scroll view class.
 
 ### Also
