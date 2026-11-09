@@ -11,6 +11,9 @@ enum MainMenu {
         main.addItem(appItem)
 
         add(appMenu, "About Zonic", #selector(NSApplication.orderFrontStandardAboutPanel(_:)))
+        let whatsNew = NSMenuItem(title: "What's New in Zonic", action: #selector(AppDelegate.showWhatsNew(_:)), keyEquivalent: "")
+        whatsNew.target = NSApp.delegate
+        appMenu.addItem(whatsNew)
         let updates = add(appMenu, "Check for Updates…", #selector(Updater.checkNow(_:)))
         updates.target = Updater.shared
         appMenu.addItem(.separator())
