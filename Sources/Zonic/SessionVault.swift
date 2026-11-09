@@ -13,6 +13,7 @@ final class SessionVault: NSObject, WKHTTPCookieStoreObserver {
     static let shared = SessionVault()
 
     private let fileURL: URL
+    private let storageURL: URL
     private let queue = DispatchQueue(label: "com.smartsparkcoding.zonic.sessionvault")
     private var store: WKWebsiteDataStore?
     private var isRestoring = false
@@ -25,10 +26,14 @@ final class SessionVault: NSObject, WKHTTPCookieStoreObserver {
         let folder = base.appendingPathComponent("Zonic", isDirectory: true)
         try? FileManager.default.createDirectory(at: folder, withIntermediateDirectories: true)
         fileURL = folder.appendingPathComponent("cookies.json")
+        storageURL = folder.appendingPathComponent("storage.json")
         super.init()
     }
 
     var vaultPath: String { fileURL.path }
+
+    /// How many page storage keys are on disk, for the diagnostics dump.
+    private(set) var storedStorageKeyCount = 0
 
     /// How many cookies are sitting on disk, used by the diagnostics dump.
     var storedCookieCount: Int {
@@ -68,6 +73,85 @@ final class SessionVault: NSObject, WKHTTPCookieStoreObserver {
             self.isRestoring = false
             self.save(cookies: cookies)
         }
+    }
+
+    // MARK: - Page storage
+
+    /// Cookies were not the whole login. Amazon also keeps tokens in localStorage, so a
+    /// restart could restore every cookie and still land on the sign-in page. This hands
+    /// the saved keys back before any page script runs.
+    func storageBootstrapScript() -> String? {
+        guard let saved = readStorage(), !saved.isEmpty else { return nil }
+        storedStorageKeyCount = saved.count
+        guard let data = try? JSONSerialization.data(withJSONObject: saved),
+              let json = String(data: data, encoding: .utf8) else { return nil }
+
+        return """
+        (function () {
+          try {
+            var host = location.hostname || '';
+            if (host.indexOf('amazon.') === -1) { return; }
+            var saved = \(json);
+            for (var key in saved) {
+              if (!Object.prototype.hasOwnProperty.call(saved, key)) { continue; }
+              try {
+                if (window.localStorage.getItem(key) === null) {
+                  window.localStorage.setItem(key, saved[key]);
+                }
+              } catch (e) {}
+            }
+            window.__zonicStorageRestored = true;
+          } catch (e) {}
+        })();
+        """
+    }
+
+    /// Snapshots localStorage so the next launch can put it back.
+    func captureStorage(from webView: WKWebView) {
+        let js = """
+        (function () {
+          try {
+            var out = {};
+            var total = 0;
+            var limit = 512 * 1024;
+            for (var i = 0; i < window.localStorage.length; i++) {
+              var key = window.localStorage.key(i);
+              var value = window.localStorage.getItem(key);
+              if (key === null || value === null) { continue; }
+              total += key.length + value.length;
+              if (total > limit) { break; }
+              out[key] = value;
+            }
+            return JSON.stringify(out);
+          } catch (e) { return '{}'; }
+        })();
+        """
+        webView.evaluateJavaScript(js) { [weak self] result, _ in
+            guard let self, let text = result as? String, text.count > 4 else { return }
+            self.writeStorage(text)
+        }
+    }
+
+    private func writeStorage(_ json: String) {
+        queue.async { [storageURL] in
+            guard let data = json.data(using: .utf8) else { return }
+            let temporary = storageURL.appendingPathExtension("tmp")
+            do {
+                try data.write(to: temporary)
+                try FileManager.default.setAttributes([.posixPermissions: 0o600], ofItemAtPath: temporary.path)
+                _ = try FileManager.default.replaceItemAt(storageURL, withItemAt: temporary)
+            } catch {
+                try? data.write(to: storageURL, options: .atomic)
+            }
+        }
+    }
+
+    private func readStorage() -> [String: String]? {
+        guard let data = try? Data(contentsOf: storageURL),
+              let object = try? JSONSerialization.jsonObject(with: data) as? [String: String] else {
+            return nil
+        }
+        return object
     }
 
     // MARK: - Saving
