@@ -34,7 +34,7 @@ final class WhatsNewWindowController: NSWindowController, NSWindowDelegate {
         NSApp.activate(ignoringOtherApps: true)
     }
 
-    init() {
+    override init() {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 560, height: 500),
             styleMask: [.titled, .closable, .resizable],
