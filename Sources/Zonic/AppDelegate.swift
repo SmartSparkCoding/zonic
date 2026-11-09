@@ -30,7 +30,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
     }
 
-    func showWhatsNew(_ sender: Any?) {
+    @objc func showWhatsNew(_ sender: Any?) {
         WhatsNewWindowController.present()
     }
 

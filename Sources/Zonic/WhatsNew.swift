@@ -27,14 +27,14 @@ final class WhatsNewWindowController: NSWindowController, NSWindowDelegate {
             NSApp.activate(ignoringOtherApps: true)
             return
         }
-        let controller = WhatsNewWindowController()
+        let controller = WhatsNewWindowController(version: Updater.shared.currentVersion)
         current = controller
         controller.showWindow(nil)
         controller.window?.makeKeyAndOrderFront(nil)
         NSApp.activate(ignoringOtherApps: true)
     }
 
-    override init() {
+    init(version: String) {
         let window = NSWindow(
             contentRect: NSRect(x: 0, y: 0, width: 560, height: 500),
             styleMask: [.titled, .closable, .resizable],
