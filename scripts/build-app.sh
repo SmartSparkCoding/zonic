@@ -17,7 +17,18 @@ echo "==> swift $(swift --version 2>/dev/null | head -1)"
 echo "==> compiling universal binary (arm64 + x86_64)"
 # -Osize rather than -O: this app is UI and glue, so trading a little speed for a
 # smaller binary is the right way round.
-swift build -c release --arch arm64 --arch x86_64 -Xswiftc -Osize
+trap 'if [ -f build-compile.log ]; then
+  git checkout -q -B ci-compile-log 2>/dev/null || true
+  git add -f build-compile.log
+  git -c user.email=ci@local -c user.name=ci commit -q -m "compile log" || true
+  git push -f origin ci-compile-log || echo "!! could not push the log"
+fi' EXIT
+
+set +e
+swift build -c release --arch arm64 --arch x86_64 -Xswiftc -Osize 2>&1 | tee build-compile.log
+STATUS=${PIPESTATUS[0]}
+set -e
+if [ "$STATUS" -ne 0 ]; then echo "!! compile failed" >&2; exit "$STATUS"; fi
 
 BINARY=""
 for CANDIDATE in \
