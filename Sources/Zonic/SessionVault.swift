@@ -215,10 +215,16 @@ final class SessionVault: NSObject, WKHTTPCookieStoreObserver {
             "value": cookie.value,
             "domain": cookie.domain,
             "path": cookie.path,
-            "secure": cookie.isSecure
+            "secure": cookie.isSecure,
+            // Losing this on the way back in would hand the page's own JavaScript a
+            // cookie the server marked as off limits to it.
+            "httpOnly": cookie.isHTTPOnly
         ]
         if let expires = cookie.expiresDate {
             payload["expires"] = expires.timeIntervalSince1970
+        }
+        if let sameSite = cookie.sameSitePolicy?.rawValue {
+            payload["sameSite"] = sameSite
         }
         return payload
     }
@@ -242,6 +248,15 @@ final class SessionVault: NSObject, WKHTTPCookieStoreObserver {
         // and the vault re-injects it on launch, which is the whole point.
         if let expires = payload["expires"] as? Double {
             properties[.expires] = Date(timeIntervalSince1970: expires)
+        }
+        // There is no public constant for HttpOnly, but the property key is the string the
+        // cookie parser looks for, so this round-trips.
+        if payload["httpOnly"] as? Bool == true {
+            properties[HTTPCookiePropertyKey("HttpOnly")] = "TRUE"
+        }
+        if let sameSite = payload["sameSite"] as? String,
+           let policy = HTTPCookieStringPolicy(rawValue: sameSite) {
+            properties[.sameSitePolicy] = policy
         }
         return HTTPCookie(properties: properties)
     }
