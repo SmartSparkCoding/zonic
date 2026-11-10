@@ -346,6 +346,10 @@ enum Bridge {
       // incoming one instead, with the length capped by what is actually left.
       var fadeBase = null;
       var fadeRun = null;
+      // The volume we last wrote, so a change made in Amazon's own slider can be told
+      // apart from our own ramp and adopted as the new base.
+      var lastSetVolume = null;
+      var fadingOut = false;
 
       var rampTo = function (target, seconds) {
         var node = mediaElement();
@@ -358,7 +362,9 @@ enum Bridge {
         var step = function (now) {
           var t = Math.min(1, (now - started) / span);
           var value = from + (target - from) * t;
-          try { node.volume = Math.max(0, Math.min(1, value)); } catch (e) {}
+          var clamped = Math.max(0, Math.min(1, value));
+          try { node.volume = clamped; } catch (e) {}
+          lastSetVolume = clamped;
           fadeRun = t < 1 ? requestAnimationFrame(step) : null;
         };
         fadeRun = requestAnimationFrame(step);
@@ -376,19 +382,34 @@ enum Bridge {
         var seconds = crossfadeSeconds();
         var node = mediaElement();
         if (!node) { return; }
+        // If nothing is ramping and the volume is not where we left it, the user moved
+        // Amazon's own slider. Adopt that as the base instead of restoring a stale one.
+        if (fadeRun === null && lastSetVolume !== null && Math.abs(node.volume - lastSetVolume) > 0.01) {
+          fadeBase = node.volume;
+          lastSetVolume = node.volume;
+        }
+
         var key = trackKey();
         if (key !== lastFadeKey) {
           var changed = lastFadeKey !== '';
           lastFadeKey = key;
+          fadingOut = false;
           if (changed && seconds > 0 && fadeBase !== null) {
             rampTo(fadeBase, Math.min(seconds, 3));
           }
           return;
         }
-        if (!seconds || !(progress.duration > 0)) { return; }
+        if (!seconds || !(progress.duration > 0)) { fadingOut = false; return; }
         var remaining = progress.duration - progress.position;
         if (remaining > 0.2 && remaining <= seconds) {
-          rampTo(0, remaining);
+          // tick() runs four times a second, so only arm the fade once. Re-arming it every
+          // tick restarted the ramp from wherever it had got to and made it stutter.
+          if (!fadingOut) {
+            fadingOut = true;
+            rampTo(0, remaining);
+          }
+        } else {
+          fadingOut = false;
         }
       };
 
