@@ -254,9 +254,9 @@ final class SessionVault: NSObject, WKHTTPCookieStoreObserver {
         if payload["httpOnly"] as? Bool == true {
             properties[HTTPCookiePropertyKey("HttpOnly")] = "TRUE"
         }
-        if let sameSite = payload["sameSite"] as? String,
-           let policy = HTTPCookieStringPolicy(rawValue: sameSite) {
-            properties[.sameSitePolicy] = policy
+        if let sameSite = payload["sameSite"] as? String {
+            // Not failable: the type is a string wrapper, so an unknown value is kept as is.
+            properties[.sameSitePolicy] = HTTPCookieStringPolicy(rawValue: sameSite)
         }
         return HTTPCookie(properties: properties)
     }
