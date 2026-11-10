@@ -1,0 +1,145 @@
+0%: Compute target dependency graph
+Building targets in dependency order
+Target dependency graph (2 targets)
+0%: Gather provisioning inputs
+0%: Create build description
+0%: Discovering version info for swiftc
+0%: Discovering version info for clang
+0%: Discovering version info for ld
+Build description signature: 359d8456ff13bd5aa280aa7f8db52d0b
+
+Build description path: /Users/runner/work/zonic/zonic/.build/apple/Intermediates.noindex/XCBuildData/359d8456ff13bd5aa280aa7f8db52d0b.xcbuilddata
+
+0%: Create build directory $(TARGET_BUILD_DIR)
+0%: Create build directory $(OBJROOT)
+0%: Build stat cache for /Applications/Xcode_16.4.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX15.5.sdk
+0%: Create build directory $(TARGET_BUILD_DIR)/Release
+0%: Create build directory $(OBJROOT)/EagerLinkingTBDs/Release
+0%: Create build directory $(TARGET_BUILD_DIR)/Release/PackageFrameworks
+0%: Write Zonic.DependencyStaticMetadataFileList
+0%: Write Zonic.DependencyMetadataFileList
+0%: Write Zonic_const_extract_protocols.json (x86_64)
+0%: Write Zonic.SwiftFileList (x86_64)
+0%: Write Zonic.LinkFileList (x86_64)
+0%: Write Zonic-OutputFileMap.json (x86_64)
+0%: Write Zonic_const_extract_protocols.json (arm64)
+0%: Write Zonic.SwiftFileList (arm64)
+0%: Write Zonic.LinkFileList (arm64)
+0%: Write Zonic-OutputFileMap.json (arm64)
+48%: Planning Swift module Zonic (arm64)
+48%: Planning Swift module Zonic (x86_64)
+50%: Compile Zonic (x86_64)
+50%: Compiling AppDelegate.swift, Bridge.swift, ChromeBar.swift, Lyrics.swift, LyricsView.swift, MainMenu.swift, MainWindowController.swift, PlayerBridge.swift, PlayerState.swift, Scrobbler.swift, SessionVault.swift, SettingsWindowController.swift, Theme.swift, Updater.swift, WebController.swift, WhatsNew.swift, main.swift
+50%: Compiling AppDelegate.swift, Bridge.swift, ChromeBar.swift, Lyrics.swift, LyricsView.swift, MainMenu.swift, MainWindowController.swift, PlayerBridge.swift, PlayerState.swift, Scrobbler.swift, SessionVault.swift, SettingsWindowController.swift, Theme.swift, Updater.swift, WebController.swift, WhatsNew.swift, main.swift
+50%: Compile Zonic (arm64)
+50%: Compile 17 Swift source files (x86_64)
+50%: Compile 17 Swift source files (arm64)
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:13:9: warning: result of call to 'add' is unused
+        add(appMenu, "About Zonic", #selector(NSApplication.orderFrontStandardAboutPanel(_:)))
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:25:9: warning: result of call to 'add' is unused
+        add(appMenu, "Hide Zonic", #selector(NSApplication.hide(_:)), "h")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:28:9: warning: result of call to 'add' is unused
+        add(appMenu, "Show All", #selector(NSApplication.unhideAllApplications(_:)))
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:30:9: warning: result of call to 'add' is unused
+        add(appMenu, "Quit Zonic", #selector(NSApplication.terminate(_:)), "q")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:38:9: warning: result of call to 'add' is unused
+        add(editMenu, "Undo", Selector(("undo:")), "z")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:42:9: warning: result of call to 'add' is unused
+        add(editMenu, "Cut", #selector(NSText.cut(_:)), "x")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:43:9: warning: result of call to 'add' is unused
+        add(editMenu, "Copy", #selector(NSText.copy(_:)), "c")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:44:9: warning: result of call to 'add' is unused
+        add(editMenu, "Paste", #selector(NSText.paste(_:)), "v")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:45:9: warning: result of call to 'add' is unused
+        add(editMenu, "Select All", #selector(NSText.selectAll(_:)), "a")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:151:9: warning: result of call to 'add' is unused
+        add(windowMenu, "Minimize", #selector(NSWindow.performMiniaturize(_:)), "m")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:152:9: warning: result of call to 'add' is unused
+        add(windowMenu, "Zoom", #selector(NSWindow.performZoom(_:)))
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+58%: Discovering Swift tasks after 'Compiling AppDelegate.swift, Bridge.swift, ChromeBar.swift, Lyrics.swift, LyricsView.swift, MainMenu.swift, MainWindowController.swift, PlayerBridge.swift, PlayerState.swift, Scrobbler.swift, SessionVault.swift, SettingsWindowController.swift, Theme.swift, Updater.swift, WebController.swift, WhatsNew.swift, main.swift'
+58%: Unblock downstream dependents of Zonic (arm64)
+58%: Copy Zonic.swiftmodule (arm64)
+58%: Link Zonic (arm64)
+58%: Copy Zonic.swiftdoc (arm64)
+58%: Copy Zonic.abi.json (arm64)
+58%: Copy Zonic.swiftsourceinfo (arm64)
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+result of call to 'add' is unused
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:13:9: warning: result of call to 'add' is unused
+        add(appMenu, "About Zonic", #selector(NSApplication.orderFrontStandardAboutPanel(_:)))
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:25:9: warning: result of call to 'add' is unused
+        add(appMenu, "Hide Zonic", #selector(NSApplication.hide(_:)), "h")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:28:9: warning: result of call to 'add' is unused
+        add(appMenu, "Show All", #selector(NSApplication.unhideAllApplications(_:)))
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:30:9: warning: result of call to 'add' is unused
+        add(appMenu, "Quit Zonic", #selector(NSApplication.terminate(_:)), "q")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:38:9: warning: result of call to 'add' is unused
+        add(editMenu, "Undo", Selector(("undo:")), "z")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:42:9: warning: result of call to 'add' is unused
+        add(editMenu, "Cut", #selector(NSText.cut(_:)), "x")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:43:9: warning: result of call to 'add' is unused
+        add(editMenu, "Copy", #selector(NSText.copy(_:)), "c")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:44:9: warning: result of call to 'add' is unused
+        add(editMenu, "Paste", #selector(NSText.paste(_:)), "v")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:45:9: warning: result of call to 'add' is unused
+        add(editMenu, "Select All", #selector(NSText.selectAll(_:)), "a")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:151:9: warning: result of call to 'add' is unused
+        add(windowMenu, "Minimize", #selector(NSWindow.performMiniaturize(_:)), "m")
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+/Users/runner/work/zonic/zonic/Sources/Zonic/MainMenu.swift:152:9: warning: result of call to 'add' is unused
+        add(windowMenu, "Zoom", #selector(NSWindow.performZoom(_:)))
+        ^  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+75%: Discovering Swift tasks after 'Compiling AppDelegate.swift, Bridge.swift, ChromeBar.swift, Lyrics.swift, LyricsView.swift, MainMenu.swift, MainWindowController.swift, PlayerBridge.swift, PlayerState.swift, Scrobbler.swift, SessionVault.swift, SettingsWindowController.swift, Theme.swift, Updater.swift, WebController.swift, WhatsNew.swift, main.swift'
+75%: Unblock downstream dependents of Zonic (x86_64)
+75%: Copy Zonic.swiftmodule (x86_64)
+75%: Link Zonic (x86_64)
+75%: Copy Zonic.swiftdoc (x86_64)
+75%: Copy Zonic.abi.json (x86_64)
+75%: Copy Zonic.swiftsourceinfo (x86_64)
+91%: Create universal binary Zonic
+91%: Generate Zonic.dSYM for Zonic
+97%: Register execution policy exception for Zonic
+100%: Build succeeded
+Build complete!
