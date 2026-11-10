@@ -1,0 +1,81 @@
+<Window x:Class="Zonic.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
+        Title="Zonic" Height="800" Width="1200" MinHeight="460" MinWidth="720"
+        WindowStyle="None" Background="#1c1c1e" UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+
+  <WindowChrome.WindowChrome>
+    <WindowChrome CaptionHeight="0" ResizeBorderThickness="6"
+                  GlassFrameThickness="0" CornerRadius="0"
+                  UseAeroCaptionButtons="False" />
+  </WindowChrome.WindowChrome>
+
+  <Grid>
+    <Grid.RowDefinitions>
+      <RowDefinition Height="34" />
+      <RowDefinition Height="*" />
+    </Grid.RowDefinitions>
+
+    <Border x:Name="Chrome" Grid.Row="0" Background="#1c1c1e"
+            MouseLeftButtonDown="Chrome_MouseDown">
+      <Grid Margin="8,0">
+        <Grid.ColumnDefinitions>
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="*" />
+          <ColumnDefinition Width="Auto" />
+          <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button x:Name="BackButton" Style="{StaticResource ChromeButton}" Content="&#xE72B;"
+                  FontFamily="Segoe MDL2 Assets" FontSize="11" ToolTip="Back (Alt+Left)"
+                  Click="Back_Click" />
+          <Button x:Name="ForwardButton" Style="{StaticResource ChromeButton}" Content="&#xE72A;"
+                  FontFamily="Segoe MDL2 Assets" FontSize="11" ToolTip="Forward (Alt+Right)"
+                  Click="Forward_Click" />
+          <Button x:Name="ReloadButton" Style="{StaticResource ChromeButton}" Content="&#xE72C;"
+                  FontFamily="Segoe MDL2 Assets" FontSize="11" ToolTip="Reload (F5)"
+                  Click="Reload_Click" />
+        </StackPanel>
+
+        <TextBlock x:Name="NowPlayingText" Grid.Column="1" Text="Amazon Music"
+                   VerticalAlignment="Center" HorizontalAlignment="Center"
+                   TextTrimming="CharacterEllipsis" FontSize="12" Foreground="#ebdbb2"
+                   Margin="12,0" />
+
+        <StackPanel x:Name="ScrubPanel" Grid.Column="2" Orientation="Horizontal"
+                    VerticalAlignment="Center" Margin="0,0,10,0" Visibility="Collapsed">
+          <Border x:Name="ScrubTrack" Width="150" Height="14" Background="Transparent"
+                  Cursor="Hand" MouseLeftButtonDown="Scrub_Down"
+                  MouseMove="Scrub_Move" MouseLeftButtonUp="Scrub_Up">
+            <Grid VerticalAlignment="Center">
+              <Border Height="3" CornerRadius="1.5" Background="#33ffffff" />
+              <Border x:Name="ScrubFill" Height="3" CornerRadius="1.5"
+                      HorizontalAlignment="Left" Background="#fabd2f" Width="0" />
+              <Ellipse x:Name="ScrubThumb" Width="8" Height="8" Fill="#fabd2f"
+                       HorizontalAlignment="Left" Margin="0" Visibility="Collapsed" />
+            </Grid>
+          </Border>
+          <TextBlock x:Name="TimeText" VerticalAlignment="Center" FontSize="11"
+                     FontFamily="Consolas" Foreground="#928374" Margin="8,0,0,0" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+          <Button x:Name="LyricsButton" Style="{StaticResource ChromeButton}" Content="&#x266A;"
+                  FontSize="14" ToolTip="Lyrics (Ctrl+Shift+L)" Click="Lyrics_Click" />
+          <Button x:Name="ThemeButton" Style="{StaticResource ChromeButton}" Content="&#x25D0;"
+                  FontSize="13" ToolTip="Next theme" Click="Theme_Click" />
+          <Button x:Name="MoreButton" Style="{StaticResource ChromeButton}" Content="&#xE712;"
+                  FontFamily="Segoe MDL2 Assets" FontSize="11" ToolTip="More"
+                  Click="More_Click" />
+        </StackPanel>
+      </Grid>
+    </Border>
+
+    <Border Grid.Row="1" x:Name="WebHost" Background="#1c1c1e">
+      <wv2:WebView2 x:Name="Web" />
+    </Border>
+  </Grid>
+</Window>
