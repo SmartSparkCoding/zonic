@@ -60,6 +60,18 @@ The project also builds on Linux and macOS with `EnableWindowsTargeting`, which 
 and the maintainer check that it compiles without a Windows machine. It cannot be *run*
 anywhere but Windows.
 
+## CI
+
+`windows/ci/windows.yml` is the workflow, but it has to be moved into place by hand:
+
+```powershell
+Move-Item windows/ci/windows.yml .github/workflows/windows.yml
+```
+
+It builds on `windows-latest` and attaches the zip to the release the macOS workflow just
+published, so one push still produces one release with both platforms in it. It also runs
+on pull requests, build only.
+
 ## Requirements
 
 - Windows 10 1809 or later, Windows 11 recommended
