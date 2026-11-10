@@ -1,0 +1,81 @@
+
+        :root { color-scheme: __SCHEME__ !important; }
+        html, body { background-color: #__BG__ !important; color: #__FG__ !important; }
+
+        html body [class][class][class]:not(img):not(video):not(canvas):not(svg):not(picture):not(path),
+        html body [id][id]:not(img):not(video):not(canvas):not(svg):not(picture):not(path),
+        html body div:not([class]):not([id]),
+        html body span:not([class]):not([id]),
+        html body section:not([class]),
+        html body ul:not([class]),
+        html body li:not([class]) {
+          background-color: transparent !important;
+          border-color: #__SURFACE__ !important;
+        }
+
+        html body [class][class][class] { color: #__FG__ !important; }
+        html body h1, html body h2, html body h3, html body h4,
+        html body p, html body li, html body label, html body time,
+        html body strong, html body td, html body th { color: #__FG__ !important; }
+        html body a, html body a * { color: #__FG__ !important; }
+        html body a:hover, html body a:hover * { color: #__ACCENT__ !important; }
+        html body [aria-current], html body [aria-current] *,
+        html body [aria-selected="true"], html body [aria-selected="true"] * {
+          color: #__ACCENT__ !important;
+        }
+        html body [aria-disabled="true"] *, html body [disabled] { color: #__MUTED__ !important; }
+        html body small, html body [class][class][class] small { color: #__MUTED__ !important; }
+        ::selection { background: #__ACCENT__ !important; color: #__BG__ !important; }
+
+        [data-testid*="player" i], [class*="playerBar" i], [class*="player-bar" i],
+        [class*="nowPlaying" i], [class*="playback" i], [class*="miniplayer" i],
+        [role="region"][aria-label*="player" i] {
+          background-color: #__SURFACE__ !important;
+        }
+
+        button, [role="button"], [role="menuitem"], [role="option"], [role="tab"] {
+          background-color: transparent !important;
+          color: #__FG__ !important;
+          border-radius: 6px !important;
+        }
+        button:hover, [role="button"]:hover, [role="menuitem"]:hover,
+        [role="option"]:hover, [role="tab"]:hover {
+          background-color: #__SURFACE__ !important;
+        }
+        [aria-pressed="true"], [aria-checked="true"], [data-selected="true"] {
+          background-color: #__SURFACE__ !important;
+        }
+
+        input, textarea, select, [contenteditable="true"], [role="textbox"],
+        [role="searchbox"] {
+          background-color: #__SURFACE__ !important;
+          color: #__FG__ !important;
+          border: 1px solid #__MUTED__ !important;
+          border-radius: 6px !important;
+        }
+        input::placeholder, textarea::placeholder { color: #__MUTED__ !important; }
+
+        input[type="range"], [role="slider"] {
+          accent-color: #__ACCENT__ !important;
+          background-color: #__MUTED__ !important;
+        }
+        progress, [role="progressbar"], [role="progressbar"] > * {
+          background-color: #__SURFACE__ !important;
+          color: #__ACCENT__ !important;
+          accent-color: #__ACCENT__ !important;
+        }
+
+        [role="dialog"], [role="menu"], [role="listbox"], [role="tooltip"],
+        [role="alertdialog"], [class*="modal" i], [class*="dialog" i],
+        [class*="popover" i], [class*="dropdown" i] {
+          background-color: #__SURFACE__ !important;
+          color: #__FG__ !important;
+          border: 1px solid #__MUTED__ !important;
+          border-radius: 10px !important;
+        }
+
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #__BG__ !important; }
+        ::-webkit-scrollbar-thumb { background: #__MUTED__ !important; border-radius: 5px; }
+        ::-webkit-scrollbar-thumb:hover { background: #__ACCENT__ !important; }
+        

@@ -3,3 +3,9 @@ dist/
 *.xcodeproj
 .DS_Store
 build/
+
+# Windows build output
+windows/**/bin/
+windows/**/obj/
+dist-windows/
+Zonic-*-windows.zip

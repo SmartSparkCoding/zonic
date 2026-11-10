@@ -1,0 +1,23 @@
+
+        :root, html { color-scheme: dark !important; }
+        html {
+          background-color: #ffffff !important;
+          filter: invert(0.93) hue-rotate(180deg) saturate(0.92) !important;
+        }
+        img, picture, video, canvas, svg, [style*="background-image" i] {
+          filter: invert(1) hue-rotate(180deg) !important;
+        }
+        html::after {
+          content: "";
+          position: fixed;
+          inset: 0;
+          pointer-events: none;
+          z-index: 2147483646;
+          background-color: #__ACCENT__;
+          opacity: 0.14;
+          mix-blend-mode: color;
+        }
+        ::-webkit-scrollbar { width: 10px; height: 10px; }
+        ::-webkit-scrollbar-track { background: #__BG__ !important; }
+        ::-webkit-scrollbar-thumb { background: #__ACCENT__ !important; border-radius: 5px; }
+        
