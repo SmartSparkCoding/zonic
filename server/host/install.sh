@@ -44,12 +44,13 @@ set -a
 . "$SERVER/.env"
 set +a
 
-PUBLIC_PORT="${ZONIC_PUBLIC_PORT:-8080}"
+PUBLIC_PORT="${ZONIC_PUBLIC_PORT:-6769}"
 STREAM_PORT="${ZONIC_STREAM_PORT:-8090}"
 GATE_PORT="${ZONIC_GATE_PORT:-8091}"
 IDLE_MINUTES="${ZONIC_IDLE_MINUTES:-10}"
 USER_NAME="${ZONIC_USER:-jacob}"
 CONTAINER="${ZONIC_CONTAINER:-zonic-session}"
+DOMAIN="${ZONIC_DOMAIN:-}"
 
 say "installing caddy if it is missing"
 if [ ! -x /usr/local/bin/caddy ]; then
@@ -83,6 +84,7 @@ fi
 say "writing the service environment"
 cat >"$CONF_DIR/env" <<EOF
 ZONIC_PUBLIC_PORT=$PUBLIC_PORT
+ZONIC_DOMAIN=$DOMAIN
 ZONIC_STREAM_PORT=$STREAM_PORT
 ZONIC_GATE_PORT=$GATE_PORT
 ZONIC_USER=$USER_NAME
@@ -96,27 +98,11 @@ EOF
 chmod 0644 "$CONF_DIR/env"
 
 say "rendering the caddyfile"
-python3 - "$SERVER/caddy/Caddyfile.template" "$CONF_DIR/Caddyfile" <<'PY'
-import sys
-
-template, target = sys.argv[1], sys.argv[2]
-text = open(template, encoding="utf-8").read()
-values = {}
-for line in open("/etc/zonic/env", encoding="utf-8"):
-    if "=" in line:
-        key, value = line.rstrip("\n").split("=", 1)
-        values[key] = value
-replacement = {
-    "__PUBLIC_PORT__": values.get("ZONIC_PUBLIC_PORT", "8080"),
-    "__STREAM_PORT__": values.get("ZONIC_STREAM_PORT", "8090"),
-    "__GATE_PORT__": values.get("ZONIC_GATE_PORT", "8091"),
-    "__USER__": values.get("ZONIC_USER", "jacob"),
-    "__HASH__": open("/etc/zonic/password.hash", encoding="utf-8").read().strip(),
-}
-for key, value in replacement.items():
-    text = text.replace(key, value)
-open(target, "w", encoding="utf-8").write(text)
-PY
+python3 "$SERVER/caddy/render.py" \
+  --template "$SERVER/caddy/Caddyfile.template" \
+  --env "$CONF_DIR/env" \
+  --hash "$HASH_FILE" \
+  --out "$CONF_DIR/Caddyfile"
 
 say "installing the services"
 install -m 0644 "$SERVER/caddy/caddy.service" /etc/systemd/system/caddy.service
@@ -134,13 +120,21 @@ systemctl restart zonic-gate.service
 systemctl enable --now zonic-idle.timer >/dev/null
 
 say "done"
+if [ -n "$DOMAIN" ]; then
+  URL="https://$DOMAIN"
+  FORWARD="Forward 443 and 80 to this box. Caddy gets the certificate itself."
+else
+  URL="http://<this-box>:$PUBLIC_PORT"
+  FORWARD="Forward $PUBLIC_PORT to this box, or put a tunnel in front of it. There is no TLS on this port."
+fi
+
 cat <<EOF
 
   Session port  127.0.0.1:$STREAM_PORT (loopback only, Caddy is the door)
-  Settings      http://127.0.0.1:$PUBLIC_PORT/settings
-  Password      user $USER_NAME, the one you just typed
+  Settings      $URL/settings
+  Password      user $USER_NAME, the one you set
 
-  Point Nest's reverse proxy or your tunnel at port $PUBLIC_PORT.
+  $FORWARD
   Nothing starts until you ask it to: open /settings, hit Start, then open /.
   The session stops itself $IDLE_MINUTES minutes after the last client leaves.
 
