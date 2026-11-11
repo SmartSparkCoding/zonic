@@ -1,0 +1,16 @@
+[Unit]
+Description=Caddy, the front door for the Zonic web session
+Documentation=https://github.com/SmartSparkCoding/zonic
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Restart=on-failure
+RestartSec=3
+ExecStart=/usr/local/bin/caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
+ExecReload=/usr/local/bin/caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
+LimitNOFILE=1048576
+
+[Install]
+WantedBy=multi-user.target

@@ -1,0 +1,48 @@
+# The Zonic web session: a real Google Chrome in a container, streamed to your browser.
+#
+# Only Caddy should reach the session, so the port is published on loopback. Caddy adds
+# the password and sits on the public port.
+
+services:
+  session:
+    # The upstream Selkies desktop image already ships Google Chrome, which is the only
+    # browser you can use here: it carries the Widevine CDM, and Amazon Music will not
+    # play protected audio without one.
+    image: ghcr.io/selkies-project/selkies/desktop:main-ubuntu26.04
+    container_name: ${ZONIC_CONTAINER:-zonic-session}
+    # Nothing here restarts on its own. The gate starts it when you ask, and the idle
+    # timer stops it once you have been gone long enough.
+    restart: "no"
+    shm_size: 512mb
+    ports:
+      - "127.0.0.1:${ZONIC_STREAM_PORT:-8090}:8080"
+    volumes:
+      # The Chrome profile is the whole point: cookies, the "keep me signed in" token and
+      # the Widevine device certificate all live here, so the login survives a restart.
+      - ./data/chrome:/home/ubuntu/.config/google-chrome
+      # The idle marker the session writes for the host timer to read.
+      - ./data/state:/opt/zonic/state
+      - ./session/start-chrome.sh:/opt/zonic/start-chrome.sh:ro
+      - ./session/amazon-music.desktop:/home/ubuntu/.config/autostart/amazon-music.desktop:ro
+    environment:
+      TZ: ${TZ:-Europe/London}
+      SELKIES_UI_TITLE: Zonic
+      # WebSockets, not WebRTC: one TCP port, no TURN server, no UDP holes to open. This
+      # is what Nest's reverse proxy can actually carry.
+      SELKIES_MODE: websockets
+      # Caddy holds the password, and this port is loopback only, so a second login in
+      # front of the same password would just be two password prompts.
+      SELKIES_ENABLE_BASIC_AUTH: "false"
+      # A 2 vCPU box cannot encode more than this. Raise it in the sidebar if yours can.
+      SELKIES_FRAMERATE: "30"
+      SELKIES_MANUAL_WIDTH: "1280"
+      SELKIES_MANUAL_HEIGHT: "720"
+      SELKIES_VIDEO_BITRATE: "2500"
+      SELKIES_JPEG_QUALITY: "60"
+      SELKIES_UI_LAYOUT: wish
+      # The idle contract between the session and the host timer.
+      SELKIES_RUN_AFTER_CONNECT: "rm -f /opt/zonic/state/disconnected"
+      SELKIES_RUN_AFTER_DISCONNECT: "touch /opt/zonic/state/disconnected"
+    # Leave the host something for itself. Nest gives you 2 GB in total.
+    mem_limit: ${ZONIC_SESSION_MEMORY:-1400m}
+    cpus: ${ZONIC_SESSION_CPUS:-1.8}

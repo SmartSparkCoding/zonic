@@ -1,0 +1,17 @@
+[Unit]
+Description=Zonic web session control panel
+Documentation=https://github.com/SmartSparkCoding/zonic
+After=network-online.target docker.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+# It shells out to docker, which is a root socket here.
+User=root
+EnvironmentFile=/etc/zonic/env
+ExecStart=/usr/bin/python3 /opt/zonic/server/gate/gate.py
+Restart=always
+RestartSec=3
+
+[Install]
+WantedBy=multi-user.target

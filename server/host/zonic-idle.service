@@ -1,0 +1,10 @@
+[Unit]
+Description=Stop the Zonic web session once nobody has been connected for a while
+Documentation=https://github.com/SmartSparkCoding/zonic
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+EnvironmentFile=/etc/zonic/env
+ExecStart=/opt/zonic/server/host/zonic-idle.sh
