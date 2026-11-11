@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Zonic - Amazon Music, without the browser</title>
-<meta name="description" content="A native Mac window for Amazon Music. Media keys, real controls, twelve themes, synced lyrics, Last.fm scrobbling, and updates that install themselves. About 1 MB, no Electron.">
+<meta name="description" content="A native window for Amazon Music, on macOS and Windows. Media keys, real controls, twelve themes, synced lyrics, Last.fm scrobbling, and updates that install themselves. No Electron.">
 <meta property="og:title" content="Zonic - Amazon Music, without the browser">
 <meta property="og:description" content="A native Mac window for Amazon Music. Media keys, real controls, twelve themes, synced lyrics, self-installing updates. About 1 MB.">
 <meta property="og:image" content="screenshot.png">
@@ -25,7 +25,7 @@
     <a href="#themes">Themes</a>
     <a href="#install">Install</a>
   </nav>
-  <a class="btn btn-primary btn-nav" href="https://github.com/SmartSparkCoding/zonic/releases/latest">Download for macOS</a>
+  <a class="btn btn-primary btn-nav" href="#install">Download</a>
  </div>
 </header>
 
@@ -34,12 +34,12 @@
   <section class="hero">
     <div class="hero-copy">
       <h1>Amazon Music,<br>without the browser.</h1>
-      <p class="lede">A native Mac window for the music you already pay for. Media keys, real controls, themes, lyrics, self-installing updates.</p>
+      <p class="lede">A native window for the music you already pay for. Media keys, real controls, themes, lyrics, self-installing updates.</p>
       <div class="cta-row">
         <a class="btn btn-primary" href="https://github.com/SmartSparkCoding/zonic/releases/latest">Download for macOS</a>
-        <a class="btn btn-ghost" href="https://github.com/SmartSparkCoding/zonic">Read the source</a>
+        <a class="btn btn-ghost" href="https://github.com/SmartSparkCoding/zonic/releases/latest">Download for Windows</a>
       </div>
-      <p class="hero-meta">macOS 12 or later. Apple silicon and Intel. Free and MIT licensed.</p>
+      <p class="hero-meta">macOS 12 or later, Apple silicon and Intel. Windows 10 and 11, 64 bit. Free and MIT licensed, and <a href="https://github.com/SmartSparkCoding/zonic">the source is right here</a>.</p>
     </div>
     <figure class="hero-shot">
       <img src="screenshot.png" width="1600" height="914" alt="Zonic playing My Soundtrack on Amazon Music, tinted in Gruvbox Dark.">
@@ -52,7 +52,7 @@
 
       <article class="cell cell-wide">
         <h3>Your keyboard works</h3>
-        <p>Play, pause, skip and go back from the media keys on any keyboard, and one single honest entry in Control Center instead of two. Space plays and pauses as long as you are not typing.</p>
+        <p>Play, pause, skip and go back from the media keys on any keyboard, and on the Mac, one single honest entry in Control Center instead of two. Space plays and pauses as long as you are not typing.</p>
         <div class="keys" aria-hidden="true">
           <kbd>space</kbd><kbd>&#8984; &#8594;</kbd><kbd>&#8984; &#8592;</kbd><kbd>&#8679; &#8984; &#8594;</kbd>
         </div>
@@ -60,7 +60,7 @@
 
       <article class="cell cell-stat">
         <p class="stat">1<span>MB</span></p>
-        <p class="stat-note">the whole binary. No Electron, no helper process, no daemon sitting in your menu bar.</p>
+        <p class="stat-note">the whole Mac binary. The Windows build carries the .NET runtime, so it is 66 MB. No Electron either way, no helper process, no daemon sitting in your menu bar.</p>
       </article>
 
       <article class="cell cell-themes">
@@ -135,23 +135,59 @@
   </section>
 
   <section class="install" id="install">
-    <h2 class="section-title">Three steps, then never again</h2>
-    <ol class="steps">
-      <li>
-        <h3>Download</h3>
-        <p>Grab the dmg from the latest release. macOS will warn you the first time, because the app is signed ad hoc rather than notarised by Apple.</p>
-      </li>
-      <li>
-        <h3>Drag</h3>
-        <p>Drop Zonic into Applications, then right click it and choose Open once. After that it launches like anything else.</p>
-      </li>
-      <li>
-        <h3>Open</h3>
-        <p>Sign in to Amazon Music in the window. If macOS is stubborn about the quarantine flag, this clears it.</p>
-        <pre><code>xattr -dr com.apple.quarantine /Applications/Zonic.app</code></pre>
-      </li>
-    </ol>
-    <p class="install-note">Every update after that arrives through the app itself. <a href="https://github.com/SmartSparkCoding/zonic#readme">The readme</a> covers building it from source if you would rather compile it.</p>
+    <h2 class="section-title">Pick your platform</h2>
+    <p class="section-sub">Both builds come out of the same release, so they are always the same version. Neither one has an installer to click through.</p>
+
+    <div class="platforms">
+      <div class="platform">
+        <div class="platform-head">
+          <h3>macOS</h3>
+          <span class="platform-tag">dmg</span>
+        </div>
+        <p class="platform-meta">12 or later. Apple silicon and Intel. About 1 MB.</p>
+        <ol class="steps">
+          <li>
+            <h3>Download</h3>
+            <p>Grab the dmg from the latest release. macOS will warn you the first time, because the app is signed ad hoc rather than notarised by Apple.</p>
+          </li>
+          <li>
+            <h3>Drag</h3>
+            <p>Drop Zonic into Applications, then right click it and choose Open once. After that it launches like anything else.</p>
+          </li>
+          <li>
+            <h3>Open</h3>
+            <p>Sign in to Amazon Music in the window. If macOS is stubborn about the quarantine flag, this clears it.</p>
+            <pre><code>xattr -dr com.apple.quarantine /Applications/Zonic.app</code></pre>
+          </li>
+        </ol>
+        <a class="btn btn-primary" href="https://github.com/SmartSparkCoding/zonic/releases/latest">Download the dmg</a>
+      </div>
+
+      <div class="platform">
+        <div class="platform-head">
+          <h3>Windows</h3>
+          <span class="platform-tag">zip</span>
+        </div>
+        <p class="platform-meta">10 or 11, 64 bit. About 66 MB, because it carries the .NET runtime.</p>
+        <ol class="steps">
+          <li>
+            <h3>Download</h3>
+            <p>Grab <code>Zonic-windows.zip</code> from the latest release. It is the only Windows asset in there.</p>
+          </li>
+          <li>
+            <h3>Extract</h3>
+            <p>Unzip it wherever you keep portable apps and run <code>Zonic.exe</code>. There is no installer, so nothing is written outside your own user folder.</p>
+          </li>
+          <li>
+            <h3>Open</h3>
+            <p>SmartScreen will warn you the first time, because the exe is not code signed. Choose More info, then Run anyway. Then sign in to Amazon Music in the window.</p>
+          </li>
+        </ol>
+        <a class="btn btn-ghost" href="https://github.com/SmartSparkCoding/zonic/releases/latest">Download the zip</a>
+      </div>
+    </div>
+
+    <p class="install-note">Every update after that arrives through the app itself, on both platforms. <a href="https://github.com/SmartSparkCoding/zonic#readme">The readme</a> covers building either one from source if you would rather compile it.</p>
   </section>
 
 </main>

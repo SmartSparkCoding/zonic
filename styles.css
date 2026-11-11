@@ -12,11 +12,13 @@
   --nav: 64px;
   --gut: clamp(20px, 5vw, 72px);
   --measure: 1180px;
+  --mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace;
 }
 
 * { box-sizing: border-box; }
 
-html { scroll-behavior: smooth; }
+/* The nav is fixed, so anchor jumps need to stop short of it. */
+html { scroll-behavior: smooth; scroll-padding-top: calc(var(--nav) + 18px); }
 
 body {
   margin: 0;
@@ -147,8 +149,11 @@ kbd {
   margin-top: 32px;
   display: flex;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 10px;
 }
+
+/* Two platform buttons have to share the column, so they are a touch tighter. */
+.cta-row .btn { padding-left: 16px; padding-right: 16px; font-size: 14px; }
 
 .hero-meta {
   margin-top: 18px;
@@ -443,6 +448,81 @@ pre code {
   line-height: 1.7;
 }
 
+.platforms {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: clamp(16px, 2vw, 24px);
+  margin-top: clamp(28px, 3.5vw, 40px);
+}
+
+.platform {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  padding: clamp(20px, 2.4vw, 28px);
+  display: flex;
+  flex-direction: column;
+}
+
+.platform-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.platform-head h3 { font-size: 1.15rem; font-weight: 640; }
+
+.platform-tag {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 3px 7px;
+}
+
+.platform-meta {
+  margin-top: 8px;
+  font-size: 13.5px;
+  color: var(--muted);
+}
+
+/* Inside a platform card the steps stack, and the card supplies the surface. */
+.platform .steps {
+  grid-template-columns: 1fr;
+  gap: 0;
+  margin-top: 20px;
+}
+
+.platform .steps li {
+  background: transparent;
+  border: 0;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  padding: 16px 0 0;
+  margin-top: 16px;
+}
+
+.platform .steps li:first-child { border-top: 0; padding-top: 0; margin-top: 0; }
+
+.platform .steps { margin-bottom: 26px; }
+
+/* Buttons line up along the bottom even when one card has more text. */
+.platform .btn { margin-top: auto; align-self: flex-start; }
+
+.platform p code {
+  font-family: var(--mono);
+  font-size: 0.88em;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  padding: 0 4px;
+  color: var(--text);
+}
+
 .install-note {
   margin-top: 22px;
   font-size: 14px;
@@ -506,6 +586,7 @@ pre code {
   .theme-chips { flex-direction: row; flex-wrap: wrap; }
   .chip { flex: 1 1 180px; }
   .steps { grid-template-columns: 1fr; }
+  .platforms { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 640px) {
