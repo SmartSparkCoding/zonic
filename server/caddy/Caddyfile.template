@@ -20,7 +20,7 @@ __SITE_ADDRESS__ {
 		__USER__ __HASH__
 	}
 
-	@gate path /settings /settings/ /api/* /healthz
+	@gate path /settings /settings/ /zonic-api/* /healthz
 	handle @gate {
 		encode zstd gzip
 		reverse_proxy 127.0.0.1:__GATE_PORT__

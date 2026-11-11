@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The control panel for the Zonic web session.
 
-Caddy puts this behind the same password as the stream and routes /settings and /api/*
+Caddy puts this behind the same password as the stream and routes /settings and /zonic-api/*
 here. It does three things: say whether the session is running, start it, and stop it.
 Everything else about the session is Selkies' business.
 
@@ -191,7 +191,7 @@ function clock(seconds) {
   return m ? `${m}m ${s}s` : `${s}s`;
 }
 async function refresh() {
-  const state = await (await fetch("/api/status")).json();
+  const state = await (await fetch("/zonic-api/status")).json();
   $("state").innerHTML = state.running
     ? '<span class="dot on"></span>running'
     : '<span class="dot off"></span>stopped';
@@ -210,9 +210,9 @@ async function post(path, body) {
   await fetch(path, { method: "POST", body: body || "" });
   refresh();
 }
-$("start").onclick = () => post("/api/start");
-$("stop").onclick = () => post("/api/stop");
-$("save").onclick = () => post("/api/idle", "minutes=" + $("idle").value);
+$("start").onclick = () => post("/zonic-api/start");
+$("stop").onclick = () => post("/zonic-api/stop");
+$("save").onclick = () => post("/zonic-api/idle", "minutes=" + $("idle").value);
 refresh();
 setInterval(refresh, 5000);
 """
@@ -302,7 +302,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(200, wake_page(start_session()))
         if path in ("/settings", "/settings/"):
             return self.send(200, settings_page())
-        if path == "/api/status":
+        if path == "/zonic-api/status":
             return self.send_json(status())
         if path == "/":
             self.send_response(302)
@@ -315,11 +315,11 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         length = int(self.headers.get("Content-Length") or 0)
         raw = self.rfile.read(length).decode("utf-8", "replace") if length else ""
-        if path == "/api/start":
+        if path == "/zonic-api/start":
             return self.send_json({"ok": start_session(), **status()})
-        if path == "/api/stop":
+        if path == "/zonic-api/stop":
             return self.send_json({"ok": stop_session(), **status()})
-        if path == "/api/idle":
+        if path == "/zonic-api/idle":
             try:
                 minutes = int(parse_qs(raw).get("minutes", ["10"])[0])
             except ValueError:
