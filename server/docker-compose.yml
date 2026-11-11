@@ -33,6 +33,10 @@ services:
       # Caddy holds the password, and this port is loopback only, so a second login in
       # front of the same password would just be two password prompts.
       SELKIES_ENABLE_BASIC_AUTH: "false"
+      # The image ships this as true, which makes the container serve TLS with a
+      # self-signed certificate on 8080. Caddy talks plain HTTP on loopback, so it has to
+      # be off or every proxied request fails the handshake. TLS belongs at the front door.
+      SELKIES_ENABLE_HTTPS: "false"
       # A 2 vCPU box cannot encode more than this. Raise it in the sidebar if yours can.
       SELKIES_FRAMERATE: "30"
       SELKIES_MANUAL_WIDTH: "1280"

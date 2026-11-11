@@ -8,7 +8,7 @@ This is not a web app that reimplements Amazon Music. It is a real Google Chrome
 container, and you are looking at its screen:
 
 ```
-browser  ──websocket──►  Caddy :8080  ──►  Selkies :8090  ──►  Chrome  ──►  music.amazon.com
+browser  ──websocket──►  Caddy :6769  ──►  Selkies :8090  ──►  Chrome  ──►  music.amazon.com
          password,          loopback         container
          settings, wake
 ```
@@ -30,8 +30,8 @@ So the server runs a browser and streams pixels and audio, and your laptop is a 
 ## What you need
 
 - A Debian box with Docker and Docker Compose v2. On Nest that means your LXC container.
-- A port to reach it on, and either Nest's reverse proxy or a tunnel to put a hostname in
-  front of it.
+- A port to reach it on, and either a port forward, Nest's reverse proxy, or a tunnel to put
+  a hostname in front of it.
 - About 1.5 GB of RAM free while a session is running.
 
 Nest gives you 2 vCPU and 2 GB. That is enough for one viewer at 720p with the settings in
@@ -51,14 +51,33 @@ The installer:
 1. copies `.env.example` to `.env` and makes `data/chrome` and `data/state`;
 2. asks for a password and stores only its bcrypt hash, in `/etc/zonic/password.hash`;
 3. downloads Caddy if it is not already at `/usr/local/bin/caddy`;
-4. renders `/etc/caddy/Caddyfile` from `caddy/Caddyfile.template`;
+4. renders `/etc/zonic/Caddyfile` from `caddy/Caddyfile.template`;
 5. installs and starts `caddy.service`, `zonic-gate.service` and `zonic-idle.timer`.
 
 Run it again after a `git pull`; it rewrites the units and the config and keeps your
 password and Chrome profile.
 
-Then point your hostname at port **8080**. On Nest, that is the port you give their reverse
-proxy, either the `*.username.hackclub.app` one or `client.zonic.navaratne.uk`.
+Then get traffic to it. Two ways, and `.env` decides which:
+
+**A hostname with a real certificate.** Put the name in `ZONIC_DOMAIN` and forward **443 and
+80** to the box. Caddy asks Let's Encrypt for a certificate on first start and renews it
+itself. `ZONIC_PUBLIC_PORT` is ignored in this mode, because the certificate challenge only
+ever arrives on 80 or 443.
+
+```bash
+ZONIC_DOMAIN=client.zonic.navaratne.uk
+```
+
+**A bare port.** Leave `ZONIC_DOMAIN` empty and forward `ZONIC_PUBLIC_PORT` (6769 by
+default). There is no TLS on this port, so the password crosses the network in the clear.
+Only do this on a LAN, or behind a tunnel that terminates TLS for you.
+
+```bash
+ZONIC_PUBLIC_PORT=6769
+```
+
+Change either one, then run `sudo server/host/install.sh` again. It re-renders the config
+and restarts Caddy; your password and Chrome profile are untouched.
 
 ## Using it
 
@@ -84,10 +103,10 @@ even if you walked away, so the session stays up while the page is open.
 
 - The stream listens on `127.0.0.1:8090` only. Caddy is the only way in.
 - Caddy puts HTTP basic auth in front of everything, including `/settings` and the wake
-  page. Put it behind HTTPS: a tunnel, or Nest's proxy, or your own certificate with
-  `auto_https` back on.
+  page.
 - Basic auth is a password over the wire, so plain `http://` on a public port is a bad
-  idea. If you are not going through a tunnel, terminate TLS in Caddy instead.
+  idea. Set `ZONIC_DOMAIN` and let Caddy do TLS, or put a tunnel in front. The bare-port
+  mode is for a LAN.
 - The session holds a live Amazon login. Treat the box like you would a laptop that is
   signed in.
 - One thing to know: an unauthenticated request to a stopped session reaches the wake page,
@@ -118,6 +137,7 @@ even if you walked away, so the session stays up while the page is open.
 | `session/start-chrome.sh` | opens Amazon Music as a chromeless Chrome window |
 | `session/amazon-music.desktop` | the LXQt autostart entry that runs it |
 | `caddy/Caddyfile.template` | password, routing, streaming, wake-on-5xx |
+| `caddy/render.py` | fills the template in from `.env` and the password hash |
 | `caddy/caddy.service` | Caddy as a service |
 | `gate/gate.py` | status, start, stop, the settings page |
 | `host/zonic-idle.sh` | stops the session once nobody is connected |

@@ -1,20 +1,26 @@
-# The front door. install.sh fills in the port, the user and the bcrypt hash, then writes
-# the result to /etc/caddy/Caddyfile.
+# The front door. install.sh runs caddy/render.py over this and writes /etc/caddy/Caddyfile.
+#
+# Two modes, chosen by whether ZONIC_DOMAIN is set in .env:
+#
+#   no domain   the site address is a bare port and TLS is off, so something in front has
+#               to provide HTTPS (a tunnel), or you live with plain http.
+#   domain      the site address is the hostname, Caddy gets a real certificate on 443 and
+#               keeps 80 for the challenge and the redirect. Forward both ports to the box.
 #
 # Everything is behind the password, including /settings. The stream is a WebSocket, so
 # the proxy has to stop buffering and let it sit open.
 
 {
 	admin off
-	auto_https off
+	__AUTO_HTTPS__
 }
 
-:__PUBLIC_PORT__ {
+__SITE_ADDRESS__ {
 	basic_auth {
 		__USER__ __HASH__
 	}
 
-	@gate path /settings /settings/ /api/* /healthz
+	@gate path /settings /settings/ /zonic-api/* /healthz
 	handle @gate {
 		encode zstd gzip
 		reverse_proxy 127.0.0.1:__GATE_PORT__

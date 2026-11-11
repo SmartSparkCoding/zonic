@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """The control panel for the Zonic web session.
 
-Caddy puts this behind the same password as the stream and routes /settings and /api/*
+Caddy puts this behind the same password as the stream and routes /settings and /zonic-api/*
 here. It does three things: say whether the session is running, start it, and stop it.
 Everything else about the session is Selkies' business.
 
@@ -12,6 +12,7 @@ import calendar
 import json
 import os
 import subprocess
+import sys
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.parse import parse_qs, urlparse
@@ -88,9 +89,15 @@ def uptime_seconds():
 def start_session():
     if is_running():
         return True
-    docker("compose", "-f", COMPOSE, "up", "-d", SERVICE, timeout=300)
+    result = docker("compose", "-f", COMPOSE, "up", "-d", SERVICE, timeout=300)
     if not is_running():
+        # Swallowing this is how "did I press start?" becomes a question. Keep the reason
+        # where the page can show it and where journalctl can find it.
+        detail = (result.stderr or result.stdout or "docker compose said nothing").strip()
+        write_state("last_error", detail[-2000:])
+        print("start failed: %s" % detail, file=sys.stderr, flush=True)
         return False
+    write_state("last_error", "")
     # Nobody is connected yet, so start the idle clock now. The session removes this file
     # the moment a client connects, and puts it back when the last one leaves.
     try:
@@ -116,6 +123,7 @@ def status():
         marker_age = int(time.time() - os.path.getmtime(MARKER))
     return {
         "running": running,
+        "error": read_state("last_error", ""),
         "connected": running and marker_age is None,
         "idle_minutes": idle_minutes(),
         "idle_seconds": marker_age,
@@ -137,6 +145,9 @@ body {
 main { width: 100%; max-width: 520px }
 h1 { font-size: 1.35rem; margin: 0 0 4px; letter-spacing: -0.01em }
 p.lede { color: #a49c8d; margin: 0 0 28px }
+.error { display: none; margin: 12px 0 0; padding: 10px 12px; border-radius: 8px;
+  background: #3a1d1d; color: #ffb4b4; font-size: 12px; white-space: pre-wrap;
+  word-break: break-word; max-height: 220px; overflow: auto }
 .card {
   background: #232220; border: 1px solid #37342f; border-radius: 14px;
   padding: 20px; margin-bottom: 14px;
@@ -180,7 +191,7 @@ function clock(seconds) {
   return m ? `${m}m ${s}s` : `${s}s`;
 }
 async function refresh() {
-  const state = await (await fetch("/api/status")).json();
+  const state = await (await fetch("/zonic-api/status")).json();
   $("state").innerHTML = state.running
     ? '<span class="dot on"></span>running'
     : '<span class="dot off"></span>stopped';
@@ -190,6 +201,8 @@ async function refresh() {
   $("idle-now").textContent = state.idle_seconds === null
     ? "someone is connected"
     : `idle for ${clock(state.idle_seconds)}`;
+  $("error").textContent = state.error || "";
+  $("error").style.display = state.error ? "block" : "none";
   $("start").disabled = state.running;
   $("stop").disabled = !state.running;
 }
@@ -197,9 +210,9 @@ async function post(path, body) {
   await fetch(path, { method: "POST", body: body || "" });
   refresh();
 }
-$("start").onclick = () => post("/api/start");
-$("stop").onclick = () => post("/api/stop");
-$("save").onclick = () => post("/api/idle", "minutes=" + $("idle").value);
+$("start").onclick = () => post("/zonic-api/start");
+$("stop").onclick = () => post("/zonic-api/stop");
+$("save").onclick = () => post("/zonic-api/idle", "minutes=" + $("idle").value);
 refresh();
 setInterval(refresh, 5000);
 """
@@ -228,6 +241,7 @@ down when you stop using it.</p>
     <button id="start" class="primary">Start now</button>
     <button id="stop">Stop now</button>
   </div>
+  <pre id="error" class="error"></pre>
 </div>
 
 <div class="card">
@@ -288,7 +302,7 @@ class Handler(BaseHTTPRequestHandler):
             return self.send(200, wake_page(start_session()))
         if path in ("/settings", "/settings/"):
             return self.send(200, settings_page())
-        if path == "/api/status":
+        if path == "/zonic-api/status":
             return self.send_json(status())
         if path == "/":
             self.send_response(302)
@@ -301,11 +315,11 @@ class Handler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         length = int(self.headers.get("Content-Length") or 0)
         raw = self.rfile.read(length).decode("utf-8", "replace") if length else ""
-        if path == "/api/start":
+        if path == "/zonic-api/start":
             return self.send_json({"ok": start_session(), **status()})
-        if path == "/api/stop":
+        if path == "/zonic-api/stop":
             return self.send_json({"ok": stop_session(), **status()})
-        if path == "/api/idle":
+        if path == "/zonic-api/idle":
             try:
                 minutes = int(parse_qs(raw).get("minutes", ["10"])[0])
             except ValueError:
