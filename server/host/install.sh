@@ -103,6 +103,7 @@ python3 "$SERVER/caddy/render.py" \
   --env "$CONF_DIR/env" \
   --hash "$HASH_FILE" \
   --out "$CONF_DIR/Caddyfile"
+/usr/local/bin/caddy fmt --overwrite "$CONF_DIR/Caddyfile" >/dev/null
 
 say "installing the services"
 install -m 0644 "$SERVER/caddy/caddy.service" /etc/systemd/system/caddy.service
@@ -113,8 +114,27 @@ done
 
 systemctl daemon-reload
 /usr/local/bin/caddy validate --config "$CONF_DIR/Caddyfile" --adapter caddyfile >/dev/null
-systemctl enable --now caddy.service >/dev/null
-systemctl restart caddy.service
+systemctl enable caddy.service >/dev/null 2>&1
+systemctl restart caddy.service || true
+
+# A config that validates can still fail to start, and systemd's own message says nothing
+# useful. The usual cause is a port already in use, so say that instead of "job failed".
+if ! systemctl is-active --quiet caddy.service; then
+  echo
+  echo "caddy did not start. Last lines from its log:"
+  journalctl -u caddy.service -n 12 --no-pager -o cat | sed 's/^/    /'
+  echo
+  if [ -n "$DOMAIN" ]; then
+    echo "  With ZONIC_DOMAIN set, caddy needs ports 80 and 443 to itself."
+    echo "  Check what is holding them:  ss -ltnp | grep -E ':(80|443) '"
+    echo "  If something else owns them, either free them or drop ZONIC_DOMAIN from"
+    echo "  $SERVER/.env and use the plain port instead."
+  else
+    echo "  Check what is holding port $PUBLIC_PORT:  ss -ltnp | grep ':$PUBLIC_PORT '"
+    echo "  Pick a free one in $SERVER/.env and run this again."
+  fi
+  die "caddy is not running"
+fi
 systemctl enable --now zonic-gate.service >/dev/null
 systemctl restart zonic-gate.service
 systemctl enable --now zonic-idle.timer >/dev/null
