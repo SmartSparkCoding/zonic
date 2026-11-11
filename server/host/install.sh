@@ -20,6 +20,13 @@ die() { printf '\033[1;31merror:\033[0m %s\n' "$*" >&2; exit 1; }
 command -v docker >/dev/null 2>&1 || die "docker is not installed"
 docker compose version >/dev/null 2>&1 || die "docker compose (v2) is not installed"
 command -v python3 >/dev/null 2>&1 || die "python3 is not installed"
+if ! command -v curl >/dev/null 2>&1; then
+  say "installing curl, it is needed to fetch caddy"
+  apt-get update -qq && apt-get install -y -qq curl >/dev/null || die "could not install curl"
+fi
+if ! command -v stat >/dev/null 2>&1 || ! command -v systemctl >/dev/null 2>&1; then
+  die "this expects a systemd system with coreutils"
+fi
 
 say "giving the session a place to keep its Chrome profile"
 mkdir -p "$SERVER/data/chrome" "$SERVER/data/state" "$STATE_DIR" "$CONF_DIR"
