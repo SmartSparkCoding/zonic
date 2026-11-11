@@ -30,6 +30,7 @@ fi
 
 say "giving the session a place to keep its Chrome profile"
 mkdir -p "$SERVER/data/chrome" "$SERVER/data/state" "$STATE_DIR" "$CONF_DIR"
+mkdir -p "$STATE_DIR/caddy/data" "$STATE_DIR/caddy/config"
 # The container runs as uid 1000 and has to write the idle marker into this one.
 chmod 0777 "$SERVER/data/state"
 
@@ -98,12 +99,13 @@ EOF
 chmod 0644 "$CONF_DIR/env"
 
 say "rendering the caddyfile"
+CONF_FILE="$CONF_DIR/Caddyfile"
 python3 "$SERVER/caddy/render.py" \
   --template "$SERVER/caddy/Caddyfile.template" \
   --env "$CONF_DIR/env" \
   --hash "$HASH_FILE" \
-  --out "$CONF_DIR/Caddyfile"
-/usr/local/bin/caddy fmt --overwrite "$CONF_DIR/Caddyfile" >/dev/null
+  --out "$CONF_FILE"
+/usr/local/bin/caddy fmt --overwrite "$CONF_FILE" >/dev/null
 
 say "installing the services"
 install -m 0644 "$SERVER/caddy/caddy.service" /etc/systemd/system/caddy.service
@@ -113,7 +115,7 @@ for unit in zonic-gate.service zonic-idle.service zonic-idle.timer; do
 done
 
 systemctl daemon-reload
-/usr/local/bin/caddy validate --config "$CONF_DIR/Caddyfile" --adapter caddyfile >/dev/null
+/usr/local/bin/caddy validate --config "$CONF_FILE" --adapter caddyfile >/dev/null
 systemctl enable caddy.service >/dev/null 2>&1
 systemctl restart caddy.service || true
 

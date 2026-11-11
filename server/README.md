@@ -51,7 +51,7 @@ The installer:
 1. copies `.env.example` to `.env` and makes `data/chrome` and `data/state`;
 2. asks for a password and stores only its bcrypt hash, in `/etc/zonic/password.hash`;
 3. downloads Caddy if it is not already at `/usr/local/bin/caddy`;
-4. renders `/etc/caddy/Caddyfile` from `caddy/Caddyfile.template`;
+4. renders `/etc/zonic/Caddyfile` from `caddy/Caddyfile.template`;
 5. installs and starts `caddy.service`, `zonic-gate.service` and `zonic-idle.timer`.
 
 Run it again after a `git pull`; it rewrites the units and the config and keeps your

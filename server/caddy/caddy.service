@@ -6,10 +6,21 @@ Wants=network-online.target
 
 [Service]
 Type=simple
+# The config lives beside the env file and the password hash, in one place. Do not point
+# this at /etc/caddy: nothing writes there, and a unit reading a file nobody creates
+# crash-loops with systemd only ever saying "exit-code".
+ExecStart=/usr/local/bin/caddy run --config /etc/zonic/Caddyfile --adapter caddyfile
+ExecReload=/usr/local/bin/caddy reload --config /etc/zonic/Caddyfile --adapter caddyfile
+
+# Caddy keeps certificates and its instance id in the XDG dirs. A service starts with no
+# HOME, so without these it falls back to the current directory and rebuilds them on every
+# restart, which means refetching the certificate each time.
+Environment=HOME=/var/lib/zonic
+Environment=XDG_DATA_HOME=/var/lib/zonic/caddy/data
+Environment=XDG_CONFIG_HOME=/var/lib/zonic/caddy/config
+
 Restart=on-failure
 RestartSec=3
-ExecStart=/usr/local/bin/caddy run --config /etc/caddy/Caddyfile --adapter caddyfile
-ExecReload=/usr/local/bin/caddy reload --config /etc/caddy/Caddyfile --adapter caddyfile
 LimitNOFILE=1048576
 
 [Install]
