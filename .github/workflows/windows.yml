@@ -1,0 +1,80 @@
+name: windows
+
+# Builds the Windows app. It attaches its zip to the release the macOS workflow just
+# published, rather than making one of its own, so a push still produces a single release
+# with both platforms in it.
+
+on:
+  pull_request:
+  workflow_run:
+    workflows: ["build"]
+    types: [completed]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      # The Mac build takes its version from the run number, so take the same one from the
+      # release tag. Otherwise the csproj sits at 0.1.0 while the Mac build is on 0.67.0.
+      - name: Work out the version
+        id: version
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $version = "0.0.0-dev"
+          if ("${{ github.event_name }}" -eq "workflow_run") {
+            $tag = gh release view --json tagName -q .tagName 2>$null
+            if ($tag) { $version = $tag.TrimStart("v") }
+          }
+          "value=$version" >> $env:GITHUB_OUTPUT
+          Write-Host "Building $version"
+
+      - name: Build
+        run: >
+          dotnet publish windows/Zonic.Windows/Zonic.Windows.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:Version=${{ steps.version.outputs.value }}
+          -p:PublishSingleFile=true
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true
+          -p:DebugType=none
+          -o dist-windows
+
+      - name: Package
+        shell: pwsh
+        run: |
+          Copy-Item RELEASE_NOTES.md dist-windows/
+          # A fixed name, so a download link never goes stale between versions.
+          Compress-Archive -Path dist-windows/Zonic.exe, dist-windows/RELEASE_NOTES.md -DestinationPath Zonic-windows.zip
+          Get-Item Zonic-windows.zip | Format-Table Name, Length
+
+      - uses: actions/upload-artifact@v5
+        with:
+          name: zonic-windows
+          path: Zonic-windows.zip
+          if-no-files-found: error
+
+      - name: Attach to the release
+        if: github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = gh release view --json tagName -q .tagName
+          if (-not $tag) {
+            Write-Host "No release to attach to yet."
+            exit 0
+          }
+          Write-Host "Uploading Zonic-windows.zip to $tag"
+          gh release upload $tag Zonic-windows.zip --clobber
