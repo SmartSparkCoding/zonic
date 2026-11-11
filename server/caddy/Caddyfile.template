@@ -1,0 +1,40 @@
+# The front door. install.sh fills in the port, the user and the bcrypt hash, then writes
+# the result to /etc/caddy/Caddyfile.
+#
+# Everything is behind the password, including /settings. The stream is a WebSocket, so
+# the proxy has to stop buffering and let it sit open.
+
+{
+	admin off
+	auto_https off
+}
+
+:__PUBLIC_PORT__ {
+	basic_auth {
+		__USER__ __HASH__
+	}
+
+	@gate path /settings /settings/ /api/* /healthz
+	handle @gate {
+		encode zstd gzip
+		reverse_proxy 127.0.0.1:__GATE_PORT__
+	}
+
+	handle {
+		reverse_proxy 127.0.0.1:__STREAM_PORT__ {
+			# -1 means flush every write straight through. Without it the stream stalls.
+			flush_interval -1
+		}
+	}
+
+	# A stopped session answers nothing, so a 5xx is the signal to wake it. The gate
+	# starts the container and hands back a page that reloads itself until it is up.
+	handle_errors {
+		@down expression {http.error.status_code} >= 500
+		handle @down {
+			rewrite * /wake
+			reverse_proxy 127.0.0.1:__GATE_PORT__
+		}
+		respond "upstream error {http.error.status_code}" {http.error.status_code}
+	}
+}

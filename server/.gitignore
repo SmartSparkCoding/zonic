@@ -1,0 +1,4 @@
+# The Chrome profile, the idle marker and the local config are all machine state.
+data/
+.env
+__pycache__/

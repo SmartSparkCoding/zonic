@@ -1,0 +1,11 @@
+[Unit]
+Description=Check the Zonic web session every minute
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=1min
+AccuracySec=10s
+Unit=zonic-idle.service
+
+[Install]
+WantedBy=timers.target
